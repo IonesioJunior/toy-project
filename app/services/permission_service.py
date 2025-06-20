@@ -267,7 +267,7 @@ class PermissionService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Permission rule not found",
             )
-        
+
         # This should never be reached
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
