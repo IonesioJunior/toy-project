@@ -20,7 +20,7 @@ class PermissionRequest(BaseModel):
 
     @field_validator("user")
     @classmethod
-    def validate_user(cls, v):
+    def validate_user(cls, v: str) -> str:
         """Validate user email or wildcard."""
         if v == "*":
             return v
@@ -32,7 +32,7 @@ class PermissionRequest(BaseModel):
 
     @field_validator("permissions")
     @classmethod
-    def validate_permissions(cls, v):
+    def validate_permissions(cls, v: List[str]) -> List[str]:
         """Validate permission types."""
         valid_permissions = {"READ", "WRITE", "CREATE", "ADMIN"}
         for perm in v:
@@ -68,7 +68,7 @@ class PermissionUpdate(BaseModel):
 
     @field_validator("permissions")
     @classmethod
-    def validate_permissions(cls, v):
+    def validate_permissions(cls, v: Optional[List[str]]) -> Optional[List[str]]:
         """Validate permission types if provided."""
         if v is None:
             return v
@@ -95,7 +95,7 @@ class BulkPermissionRequest(BaseModel):
 
     @field_validator("user")
     @classmethod
-    def validate_user(cls, v):
+    def validate_user(cls, v: str) -> str:
         """Validate user email or wildcard."""
         if v == "*":
             return v
@@ -106,7 +106,7 @@ class BulkPermissionRequest(BaseModel):
 
     @field_validator("permissions")
     @classmethod
-    def validate_permissions(cls, v):
+    def validate_permissions(cls, v: List[str]) -> List[str]:
         """Validate permission types."""
         valid_permissions = {"READ", "WRITE", "CREATE", "ADMIN"}
         for perm in v:

@@ -13,3 +13,34 @@ wheels/
 files/*
 !files/.gitkeep
 files/.metadata/*
+
+# Documentation build artifacts
+docs/
+_site/
+.jekyll-cache/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.*
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Temporary files
+*.tmp
+*.bak

@@ -202,6 +202,8 @@ class FileService:
                             mime_type=metadata.mime_type,
                             upload_date=metadata.upload_date,
                             syft_url=syft_url,
+                            is_owner=None,
+                            shared_with=None,
                         )
                     )
                 else:

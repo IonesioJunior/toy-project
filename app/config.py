@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional, Protocol, Set
+from typing import Optional, Protocol, Set, Union
 
 from pydantic_settings import BaseSettings
 from syft_core import Client
@@ -95,6 +95,9 @@ class MockSyftClient:
 
 
 settings = Settings()
+
+# Declare syft_client with union type
+syft_client: Union[Client, MockSyftClient]
 
 # Initialize based on environment
 if settings.APP_ENV == "production":

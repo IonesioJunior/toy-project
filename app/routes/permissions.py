@@ -1,6 +1,6 @@
 """API routes for managing file permissions."""
 
-from typing import Annotated
+from typing import Annotated, Any, Dict, List, Union
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -24,7 +24,7 @@ def get_permission_service() -> PermissionService:
 @router.get("/files/{file_id}/permissions", response_model=PermissionList)
 async def get_file_permissions(
     file_id: str, service: Annotated[PermissionService, Depends(get_permission_service)]
-):
+) -> PermissionList:
     """
     Get all permission rules for a specific file.
 
@@ -47,7 +47,7 @@ async def grant_file_permission(
     file_id: str,
     request: PermissionRequest,
     service: Annotated[PermissionService, Depends(get_permission_service)],
-):
+) -> PermissionResponse:
     """
     Grant permissions to a user for a specific file.
 
@@ -79,7 +79,7 @@ async def update_file_permission(
     permission_id: str,
     update: PermissionUpdate,
     service: Annotated[PermissionService, Depends(get_permission_service)],
-):
+) -> PermissionResponse:
     """
     Update an existing permission rule.
 
@@ -102,7 +102,7 @@ async def revoke_file_permission(
     file_id: str,
     permission_id: str,
     service: Annotated[PermissionService, Depends(get_permission_service)],
-):
+) -> Dict[str, str]:
     """
     Revoke a specific permission rule.
 
@@ -124,7 +124,7 @@ async def revoke_file_permission(
 async def apply_bulk_permissions(
     request: BulkPermissionRequest,
     service: Annotated[PermissionService, Depends(get_permission_service)],
-):
+) -> Dict[str, Any]:
     """
     Apply permissions to multiple files or folders using glob patterns.
 
@@ -152,7 +152,7 @@ async def check_permission(
     user: str,
     permission: str,
     service: Annotated[PermissionService, Depends(get_permission_service)],
-):
+) -> Dict[str, Union[str, bool]]:
     """
     Check if a user has a specific permission for a file.
 
@@ -192,7 +192,7 @@ async def check_permission(
 @router.get("/datasites")
 async def get_available_datasites(
     service: Annotated[PermissionService, Depends(get_permission_service)],
-):
+) -> Dict[str, Union[List[str], int, str]]:
     """
     Get list of available datasites for sharing files.
 

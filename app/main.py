@@ -31,7 +31,7 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 
 @app.on_event("startup")
-async def verify_syft_core():
+async def verify_syft_core() -> None:
     """Verify syft_core is properly initialized on startup."""
     if not syft_client:
         raise RuntimeError(
@@ -42,7 +42,7 @@ async def verify_syft_core():
 
 
 @app.get("/health")
-async def health_check():
+async def health_check() -> dict[str, str | bool]:
     """Health check endpoint that verifies syft_core status."""
     if not syft_client:
         raise HTTPException(status_code=503, detail="SyftBox not available")
@@ -54,7 +54,7 @@ async def health_check():
 
 
 @app.get("/", response_class=HTMLResponse)
-async def read_root(request: Request):
+async def read_root(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
         "index.html",
         {
