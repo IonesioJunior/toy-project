@@ -26,11 +26,11 @@ app.add_middleware(
 )
 
 # Initialize templates
-templates = Jinja2Templates(directory="app/templates")
+templates = Jinja2Templates(directory="src/app/templates")
 
 # Mount static files
-if os.path.exists("app/static"):
-    app.mount("/static", StaticFiles(directory="app/static"), name="static")
+if os.path.exists("src/app/static"):
+    app.mount("/static", StaticFiles(directory="src/app/static"), name="static")
 
 
 @app.on_event("startup")

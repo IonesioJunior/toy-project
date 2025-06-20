@@ -1,0 +1,111 @@
+# Project Three Justfile
+
+# Default recipe shows available commands
+default:
+    @just --list
+
+# Start development server (runs the main module)
+dev:
+    python -m src.main
+
+# Run with Python in development mode
+dev-debug:
+    python -m pdb -m src.main
+
+# Run all tests
+test:
+    pytest
+
+# Run tests with coverage
+test-cov:
+    pytest --cov=src --cov-report=term-missing --cov-report=html
+
+# Run tests in verbose mode
+test-verbose:
+    pytest -vv
+
+# Run specific test file or pattern
+test-match pattern:
+    pytest -k "{{pattern}}"
+
+# Run linter (ruff)
+lint:
+    ruff check src tests
+
+# Fix linting issues automatically
+lint-fix:
+    ruff check --fix src tests
+
+# Format code with black
+format:
+    black src tests
+
+# Check formatting without making changes
+format-check:
+    black --check src tests
+
+# Run type checking with mypy
+typecheck:
+    mypy src
+
+# Run all quality checks (lint, format, typecheck)
+check: lint format-check typecheck
+
+# Install dependencies
+install:
+    pip install -e .
+
+# Install development dependencies
+install-dev:
+    pip install -e ".[dev]"
+
+# Clean build artifacts and caches
+clean:
+    find . -type d -name "__pycache__" -exec rm -rf {} +
+    find . -type f -name "*.pyc" -delete
+    rm -rf .coverage htmlcov .pytest_cache .mypy_cache .ruff_cache
+    rm -rf build dist *.egg-info
+
+# Build the project
+build:
+    python -m build
+
+# Build Docker image
+docker-build:
+    docker build -f docker/Dockerfile -t project-three:latest .
+
+# Run Docker container
+docker-run:
+    docker run project-three:latest
+
+# Create source distribution
+dist:
+    python -m build --sdist
+
+# Create wheel distribution
+wheel:
+    python -m build --wheel
+
+# Run the application
+run:
+    python -m src.main
+
+# Watch for changes and restart (requires watchdog)
+watch:
+    watchmedo auto-restart --directory=./src --pattern="*.py" --recursive -- python -m src.main
+
+# Show project info
+info:
+    @echo "Project: project-three"
+    @echo "Version: 0.1.0"
+    @echo "Python: >=3.13"
+
+# Initialize virtual environment
+venv:
+    python -m venv .venv
+    @echo "Virtual environment created. Activate with: source .venv/bin/activate"
+
+# Update dependencies
+update:
+    pip install --upgrade pip setuptools wheel
+    pip install -e ".[dev]" --upgrade

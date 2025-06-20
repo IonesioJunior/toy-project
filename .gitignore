@@ -8,6 +8,11 @@ wheels/
 
 # Virtual environments
 .venv
+# Project-specific virtual environments (monorepo)
+*/.venv/
+*/venv/
+projects/*/.venv/
+projects/*/venv/
 
 # File storage
 files/*
@@ -25,6 +30,12 @@ _site/
 *.swp
 *.swo
 *~
+# Additional IDE configurations
+.fleet/
+.vim/
+.nvim/
+*.sublime-project
+*.sublime-workspace
 
 # OS files
 .DS_Store
@@ -40,6 +51,30 @@ htmlcov/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+# Project-specific coverage reports (monorepo)
+*/.coverage
+*/htmlcov/
+*/.pytest_cache/
+projects/*/.coverage
+projects/*/htmlcov/
+projects/*/.pytest_cache/
+coverage/
+.coverage.*
+
+# Build artifacts (monorepo)
+*/dist/
+*/build/
+*/*.egg-info/
+projects/*/dist/
+projects/*/build/
+projects/*/*.egg-info/
+# Additional build artifacts
+*.whl
+*.tar.gz
+
+# UV workspace cache
+.uv/
+uv.lock
 
 # Temporary files
 *.tmp

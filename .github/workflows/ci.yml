@@ -3,17 +3,80 @@ name: CI/CD Pipeline
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'projects/**'
+      - 'shared/**'
+      - '.github/workflows/ci.yml'
+      - 'pyproject.toml'
+      - 'uv.lock'
   pull_request:
     branches: [ main ]
+    paths:
+      - 'projects/**'
+      - 'shared/**'
+      - '.github/workflows/ci.yml'
+      - 'pyproject.toml'
+      - 'uv.lock'
 
 env:
   PYTHON_VERSION: "3.13"
   UV_VERSION: "0.4.18"
 
 jobs:
-  lint:
-    name: Lint & Format Check
+  # Detect which projects have changed
+  detect-changes:
+    name: Detect Changed Projects
     runs-on: ubuntu-latest
+    outputs:
+      projects: ${{ steps.detect.outputs.projects }}
+      all-projects: ${{ steps.detect.outputs.all-projects }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed projects
+        id: detect
+        run: |
+          # Get all projects
+          ALL_PROJECTS=$(find projects -mindepth 1 -maxdepth 1 -type d | sed 's|projects/||' | jq -R -s -c 'split("\n") | map(select(. != ""))')
+          echo "all-projects=$ALL_PROJECTS" >> $GITHUB_OUTPUT
+          
+          # If this is a push to main, run all projects
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "projects=$ALL_PROJECTS" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # Get changed files
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }})
+          else
+            CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
+          fi
+          
+          # Extract unique project names from changed files
+          CHANGED_PROJECTS=$(echo "$CHANGED_FILES" | grep -E '^projects/[^/]+/' | cut -d'/' -f2 | sort | uniq | jq -R -s -c 'split("\n") | map(select(. != ""))')
+          
+          # If shared files changed, run all projects
+          if echo "$CHANGED_FILES" | grep -qE '^(shared/|pyproject.toml|uv.lock)'; then
+            echo "projects=$ALL_PROJECTS" >> $GITHUB_OUTPUT
+          elif [[ "$CHANGED_PROJECTS" == "[]" ]]; then
+            # No project changes, but workflow might have changed
+            echo "projects=[]" >> $GITHUB_OUTPUT
+          else
+            echo "projects=$CHANGED_PROJECTS" >> $GITHUB_OUTPUT
+          fi
+
+  lint:
+    name: Lint & Format Check (${{ matrix.project }})
+    needs: detect-changes
+    if: needs.detect-changes.outputs.projects != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project: ${{ fromJson(needs.detect-changes.outputs.projects) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -38,22 +101,30 @@ jobs:
 
       - name: Install dependencies
         run: |
+          cd projects/${{ matrix.project }}
           uv venv
           uv sync --all-extras
 
       - name: Run ruff
         run: |
+          cd projects/${{ matrix.project }}
           source .venv/bin/activate
           ruff check .
 
       - name: Check formatting with black
         run: |
+          cd projects/${{ matrix.project }}
           source .venv/bin/activate
           black --check .
 
   type-check:
-    name: Type Check
+    name: Type Check (${{ matrix.project }})
+    needs: detect-changes
+    if: needs.detect-changes.outputs.projects != '[]'
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project: ${{ fromJson(needs.detect-changes.outputs.projects) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -78,17 +149,29 @@ jobs:
 
       - name: Install dependencies
         run: |
+          cd projects/${{ matrix.project }}
           uv venv
           uv sync --all-extras
 
       - name: Run mypy
         run: |
+          cd projects/${{ matrix.project }}
           source .venv/bin/activate
-          mypy app/
+          # Check if src/app exists (legacy structure) or just src
+          if [ -d "src/app" ]; then
+            mypy src/app/
+          elif [ -d "src" ]; then
+            mypy src/
+          fi
 
   unit-tests:
-    name: Unit Tests
+    name: Unit Tests (${{ matrix.project }})
+    needs: detect-changes
+    if: needs.detect-changes.outputs.projects != '[]'
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project: ${{ fromJson(needs.detect-changes.outputs.projects) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -113,29 +196,39 @@ jobs:
 
       - name: Install dependencies
         run: |
+          cd projects/${{ matrix.project }}
           uv venv
           uv sync --all-extras
 
       - name: Run unit tests
         run: |
+          cd projects/${{ matrix.project }}
           source .venv/bin/activate
           # Set APP_ENV to testing to ensure the app uses MockSyftClient instead of requiring real SyftBox configuration
-          APP_ENV=testing pytest -m "not integration" --cov=app --cov-report=xml --cov-report=term-missing
+          # Adjust coverage source path based on project structure
+          if [ -d "src/app" ]; then
+            APP_ENV=testing pytest -m "not integration" --cov=src/app --cov-report=xml --cov-report=term-missing
+          else
+            APP_ENV=testing pytest -m "not integration" --cov=src --cov-report=xml --cov-report=term-missing
+          fi
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          file: ./coverage.xml
-          flags: unittests
-          name: codecov-umbrella
+          file: ./projects/${{ matrix.project }}/coverage.xml
+          flags: unittests-${{ matrix.project }}
+          name: codecov-${{ matrix.project }}
           fail_ci_if_error: false
 
   integration-tests:
-    name: Integration Tests
+    name: Integration Tests (${{ matrix.project }}-${{ matrix.env_mode }})
+    needs: detect-changes
+    if: needs.detect-changes.outputs.projects != '[]'
     runs-on: ubuntu-latest
     strategy:
       matrix:
+        project: ${{ fromJson(needs.detect-changes.outputs.projects) }}
         env_mode: [testing, development]
     steps:
       - name: Checkout code
@@ -161,6 +254,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          cd projects/${{ matrix.project }}
           uv venv
           uv sync --all-extras
 
@@ -168,15 +262,21 @@ jobs:
         env:
           APP_ENV: ${{ matrix.env_mode }}
         run: |
+          cd projects/${{ matrix.project }}
           source .venv/bin/activate
           pytest -m integration
 
   build-docker:
-    name: Build Docker Images
+    name: Build Docker Images (${{ matrix.project }})
+    needs: detect-changes
+    if: needs.detect-changes.outputs.projects != '[]'
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
+    strategy:
+      matrix:
+        project: ${{ fromJson(needs.detect-changes.outputs.projects) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -197,35 +297,57 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Check for project-specific Dockerfile
+        id: dockerfile
+        run: |
+          if [ -f "projects/${{ matrix.project }}/docker/Dockerfile" ]; then
+            echo "dockerfile=projects/${{ matrix.project }}/docker/Dockerfile" >> $GITHUB_OUTPUT
+            echo "context=./projects/${{ matrix.project }}" >> $GITHUB_OUTPUT
+          else
+            echo "Project ${{ matrix.project }} doesn't have a Dockerfile, skipping Docker build"
+            echo "skip=true" >> $GITHUB_OUTPUT
+          fi
+
       - name: Build and push development image
+        if: steps.dockerfile.outputs.skip != 'true'
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: ./docker/Dockerfile
+          context: ${{ steps.dockerfile.outputs.context }}
+          file: ${{ steps.dockerfile.outputs.dockerfile }}
           target: development
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
           tags: |
-            ghcr.io/${{ steps.repo.outputs.repository }}:dev
-            ghcr.io/${{ steps.repo.outputs.repository }}:dev-${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+            ghcr.io/${{ steps.repo.outputs.repository }}/${{ matrix.project }}:dev
+            ghcr.io/${{ steps.repo.outputs.repository }}/${{ matrix.project }}:dev-${{ github.sha }}
+          cache-from: type=gha,scope=${{ matrix.project }}-dev
+          cache-to: type=gha,mode=max,scope=${{ matrix.project }}-dev
+          build-args: |
+            PROJECT_NAME=${{ matrix.project }}
 
       - name: Build and push production image
+        if: steps.dockerfile.outputs.skip != 'true'
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: ./docker/Dockerfile
+          context: ${{ steps.dockerfile.outputs.context }}
+          file: ${{ steps.dockerfile.outputs.dockerfile }}
           target: production
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
           tags: |
-            ghcr.io/${{ steps.repo.outputs.repository }}:latest
-            ghcr.io/${{ steps.repo.outputs.repository }}:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+            ghcr.io/${{ steps.repo.outputs.repository }}/${{ matrix.project }}:latest
+            ghcr.io/${{ steps.repo.outputs.repository }}/${{ matrix.project }}:${{ github.sha }}
+          cache-from: type=gha,scope=${{ matrix.project }}-prod
+          cache-to: type=gha,mode=max,scope=${{ matrix.project }}-prod
+          build-args: |
+            PROJECT_NAME=${{ matrix.project }}
 
   docker-test:
-    name: Docker Tests
+    name: Docker Tests (${{ matrix.project }})
+    needs: detect-changes
+    if: needs.detect-changes.outputs.projects != '[]'
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project: ${{ fromJson(needs.detect-changes.outputs.projects) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -233,15 +355,44 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build test image
+      - name: Check for Dockerfile and build test image
+        id: docker-test
         run: |
-          docker build --no-cache --target development -t toy-project:test -f docker/Dockerfile .
+          if [ -f "projects/${{ matrix.project }}/docker/Dockerfile" ]; then
+            docker build --no-cache --target development -t ${{ matrix.project }}:test -f projects/${{ matrix.project }}/docker/Dockerfile projects/${{ matrix.project }}
+            echo "skip=false" >> $GITHUB_OUTPUT
+          else
+            echo "No Dockerfile found for ${{ matrix.project }}, skipping Docker tests"
+            echo "skip=true" >> $GITHUB_OUTPUT
+          fi
 
       - name: Run tests in Docker
+        if: steps.docker-test.outputs.skip != 'true'
         run: |
           docker run --rm \
             -e APP_ENV=testing \
             -e PYTHONUNBUFFERED=1 \
             -v /tmp:/tmp \
-            toy-project:test \
+            ${{ matrix.project }}:test \
             sh -c "cd /app && .venv/bin/pytest -v"
+
+  # Summary job to check if all matrix jobs passed
+  ci-summary:
+    name: CI Summary
+    if: always()
+    needs: [detect-changes, lint, type-check, unit-tests, integration-tests, build-docker, docker-test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check all jobs status
+        run: |
+          if [[ "${{ needs.detect-changes.result }}" == "failure" ]] || \
+             [[ "${{ needs.lint.result }}" == "failure" ]] || \
+             [[ "${{ needs.type-check.result }}" == "failure" ]] || \
+             [[ "${{ needs.unit-tests.result }}" == "failure" ]] || \
+             [[ "${{ needs.integration-tests.result }}" == "failure" ]] || \
+             [[ "${{ needs.build-docker.result }}" == "failure" ]] || \
+             [[ "${{ needs.docker-test.result }}" == "failure" ]]; then
+            echo "One or more CI jobs failed"
+            exit 1
+          fi
+          echo "All CI jobs passed successfully!"

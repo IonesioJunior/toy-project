@@ -1,0 +1,130 @@
+version: '3.8'
+
+services:
+  # File Manager API Services
+  file-manager-api-dev:
+    build:
+      context: ../..
+      dockerfile: projects/file-manager-api/docker/Dockerfile
+      target: development
+    ports:
+      - "8001:8000"
+    volumes:
+      - ../..:/app
+      - /app/__pycache__
+      - /app/.pytest_cache
+      - /app/projects/file-manager-api/.venv
+    environment:
+      - PYTHONUNBUFFERED=1
+      - APP_ENV=development
+    working_dir: /app/projects/file-manager-api
+
+  file-manager-api-prod:
+    build:
+      context: ../..
+      dockerfile: projects/file-manager-api/docker/Dockerfile.prod
+      target: production
+    ports:
+      - "8080:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+
+  file-manager-api-test:
+    build:
+      context: ../..
+      dockerfile: projects/file-manager-api/docker/Dockerfile
+      target: development
+    volumes:
+      - ../..:/app
+      - /app/__pycache__
+      - /app/.pytest_cache
+    environment:
+      - PYTHONUNBUFFERED=1
+      - APP_ENV=testing
+    working_dir: /app/projects/file-manager-api
+    command: pytest -v
+
+  # Project Two Services (Commented out - uncomment when ready to use)
+  # project-two-dev:
+  #   build:
+  #     context: ../../projects/project-two
+  #     dockerfile: docker/Dockerfile
+  #     target: development
+  #   ports:
+  #     - "8002:8000"
+  #   volumes:
+  #     - ../../projects/project-two:/app
+  #     - /app/__pycache__
+  #     - /app/.pytest_cache
+  #     - /app/.venv
+  #   environment:
+  #     - PYTHONUNBUFFERED=1
+  #     - APP_ENV=development
+
+  # project-two-prod:
+  #   build:
+  #     context: ../../projects/project-two
+  #     dockerfile: docker/Dockerfile.prod
+  #     target: production
+  #   ports:
+  #     - "8081:8000"
+  #   environment:
+  #     - PYTHONUNBUFFERED=1
+  #   restart: unless-stopped
+
+  # project-two-test:
+  #   build:
+  #     context: ../../projects/project-two
+  #     dockerfile: docker/Dockerfile
+  #     target: development
+  #   volumes:
+  #     - ../../projects/project-two:/app
+  #     - /app/__pycache__
+  #     - /app/.pytest_cache
+  #   environment:
+  #     - PYTHONUNBUFFERED=1
+  #     - APP_ENV=testing
+  #   command: pytest -v
+
+  # Project Three Services (Commented out - uncomment when ready to use)
+  # project-three-dev:
+  #   build:
+  #     context: ../../projects/project-three
+  #     dockerfile: docker/Dockerfile
+  #     target: development
+  #   ports:
+  #     - "8003:8000"
+  #   volumes:
+  #     - ../../projects/project-three:/app
+  #     - /app/__pycache__
+  #     - /app/.pytest_cache
+  #     - /app/.venv
+  #   environment:
+  #     - PYTHONUNBUFFERED=1
+  #     - APP_ENV=development
+
+  # project-three-prod:
+  #   build:
+  #     context: ../../projects/project-three
+  #     dockerfile: docker/Dockerfile.prod
+  #     target: production
+  #   ports:
+  #     - "8082:8000"
+  #   environment:
+  #     - PYTHONUNBUFFERED=1
+  #   restart: unless-stopped
+
+  # project-three-test:
+  #   build:
+  #     context: ../../projects/project-three
+  #     dockerfile: docker/Dockerfile
+  #     target: development
+  #   volumes:
+  #     - ../../projects/project-three:/app
+  #     - /app/__pycache__
+  #     - /app/.pytest_cache
+  #   environment:
+  #     - PYTHONUNBUFFERED=1
+  #     - APP_ENV=testing
+  #   command: pytest -v

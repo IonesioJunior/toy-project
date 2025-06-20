@@ -1,0 +1,109 @@
+# File Manager API Justfile
+
+# Default recipe shows available commands
+default:
+    @just --list
+
+# Start development server
+dev:
+    uvicorn src.app.main:app --reload --host 0.0.0.0 --port 8000
+
+# Start development server with custom port
+dev-port port="8000":
+    uvicorn src.app.main:app --reload --host 0.0.0.0 --port {{port}}
+
+# Run all tests
+test:
+    pytest
+
+# Run tests with coverage
+test-cov:
+    pytest --cov=src.app --cov-report=term-missing --cov-report=html
+
+# Run specific test file or pattern
+test-match pattern:
+    pytest -k "{{pattern}}"
+
+# Run integration tests only
+test-integration:
+    pytest -m integration
+
+# Run performance tests with Locust
+test-performance:
+    locust -f tests/performance/locustfile.py --headless -u 10 -r 2 -t 30s
+
+# Run linter (ruff)
+lint:
+    ruff check src tests
+
+# Fix linting issues automatically
+lint-fix:
+    ruff check --fix src tests
+
+# Format code with black
+format:
+    black src tests
+
+# Check formatting without making changes
+format-check:
+    black --check src tests
+
+# Run type checking with mypy
+typecheck:
+    mypy src
+
+# Run all quality checks (lint, format, typecheck)
+check: lint format-check typecheck
+
+# Install dependencies
+install:
+    pip install -e .
+
+# Install all dependencies including dev and test
+install-all:
+    pip install -e ".[dev,test]"
+
+# Clean build artifacts and caches
+clean:
+    find . -type d -name "__pycache__" -exec rm -rf {} +
+    find . -type f -name "*.pyc" -delete
+    rm -rf .coverage htmlcov .pytest_cache .mypy_cache .ruff_cache
+    rm -rf build dist *.egg-info
+
+# Build Docker image for development
+docker-build:
+    docker build -f docker/Dockerfile -t file-manager-api:dev .
+
+# Build Docker image for production
+docker-build-prod:
+    docker build -f docker/Dockerfile.prod -t file-manager-api:prod .
+
+# Run Docker container
+docker-run:
+    docker run -p 8000:8000 file-manager-api:dev
+
+# Run Docker container with volume mount for development
+docker-run-dev:
+    docker run -p 8000:8000 -v $(pwd):/app file-manager-api:dev
+
+# Generate coverage badge
+coverage-badge:
+    coverage-badge -o coverage.svg
+
+# Run security checks
+security-check:
+    pip-audit
+    bandit -r src
+
+# Create a new migration (placeholder - implement based on your needs)
+migrate name:
+    echo "Creating migration: {{name}}"
+    # Add your migration logic here
+
+# Run the application in production mode
+prod:
+    uvicorn src.app.main:app --host 0.0.0.0 --port 8000 --workers 4
+
+# Show project structure
+tree:
+    tree -I "__pycache__|*.pyc|.git|.venv|htmlcov|.coverage|.pytest_cache|.mypy_cache|.ruff_cache"
