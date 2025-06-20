@@ -50,9 +50,10 @@ jobs:
           uv run safety check --json
         continue-on-error: true
 
-      - name: Check for outdated dependencies
+      - name: Check installed packages
         run: |
-          uv pip list --outdated
+          echo "Listing installed packages:"
+          uv pip list
 
   code-security:
     name: Code Security Analysis
