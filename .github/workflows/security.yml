@@ -190,7 +190,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build --target production -t toy-project:prod -f docker/Dockerfile .
+          docker build --target production -t toy-project:prod -f projects/file-manager-api/docker/Dockerfile .
 
       - name: Generate SBOM for Docker image
         run: |
