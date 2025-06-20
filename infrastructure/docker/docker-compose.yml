@@ -92,44 +92,61 @@ services:
       - APP_ENV=testing
     command: pytest -v
 
-  # Project Three Services (Commented out - uncomment when ready to use)
-  # project-three-dev:
-  #   build:
-  #     context: ../../projects/project-three
-  #     dockerfile: docker/Dockerfile
-  #     target: development
-  #   ports:
-  #     - "8003:8000"
-  #   volumes:
-  #     - ../../projects/project-three:/app
-  #     - /app/__pycache__
-  #     - /app/.pytest_cache
-  #     - /app/.venv
-  #   environment:
-  #     - PYTHONUNBUFFERED=1
-  #     - APP_ENV=development
+  # LLM Chat Services
+  llm-chat-dev:
+    build:
+      context: ../../projects/llm-chat
+      dockerfile: Dockerfile
+    ports:
+      - "8003:8000"
+    volumes:
+      - ../../projects/llm-chat:/app
+      - /app/__pycache__
+      - /app/.pytest_cache
+      - /app/.venv
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
+      - DEBUG=${DEBUG:-true}
+      - MAX_HISTORY_LENGTH=${MAX_HISTORY_LENGTH:-25}
+      - SESSION_TIMEOUT_MINUTES=${SESSION_TIMEOUT_MINUTES:-60}
+    working_dir: /app
 
-  # project-three-prod:
-  #   build:
-  #     context: ../../projects/project-three
-  #     dockerfile: docker/Dockerfile.prod
-  #     target: production
-  #   ports:
-  #     - "8082:8000"
-  #   environment:
-  #     - PYTHONUNBUFFERED=1
-  #   restart: unless-stopped
+  llm-chat-prod:
+    build:
+      context: ../../projects/llm-chat
+      dockerfile: Dockerfile.prod
+    ports:
+      - "8082:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
+      - DEBUG=false
+      - MAX_HISTORY_LENGTH=${MAX_HISTORY_LENGTH:-25}
+      - SESSION_TIMEOUT_MINUTES=${SESSION_TIMEOUT_MINUTES:-60}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
-  # project-three-test:
-  #   build:
-  #     context: ../../projects/project-three
-  #     dockerfile: docker/Dockerfile
-  #     target: development
-  #   volumes:
-  #     - ../../projects/project-three:/app
-  #     - /app/__pycache__
-  #     - /app/.pytest_cache
-  #   environment:
-  #     - PYTHONUNBUFFERED=1
-  #     - APP_ENV=testing
-  #   command: pytest -v
+  llm-chat-test:
+    build:
+      context: ../../projects/llm-chat
+      dockerfile: Dockerfile
+    volumes:
+      - ../../projects/llm-chat:/app
+      - /app/__pycache__
+      - /app/.pytest_cache
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+      - APP_ENV=testing
+    working_dir: /app
+    command: pytest -v

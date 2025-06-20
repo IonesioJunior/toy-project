@@ -8,7 +8,7 @@ This monorepo contains multiple projects organized in a clean, scalable architec
 
 - **File Manager API**: A FastAPI-based file management system with SyftBox integration
 - **Bot Knowledge**: FastAPI ChromaDB Vector Database API
-- **Project Three**: [Future project placeholder]
+- **LLM Chat**: A FastAPI-based chat application powered by OpenAI's GPT-4 Mini
 
 ## Repository Structure
 
@@ -17,7 +17,7 @@ toy_project/
 ├── projects/                    # Individual projects
 │   ├── file-manager-api/       # File management API service
 │   ├── bot-knowledge/          # FastAPI ChromaDB Vector Database API
-│   └── project-three/          # Future project
+│   └── llm-chat/               # LLM Chat application
 ├── shared/                      # Shared code and utilities
 │   ├── configs/                # Shared configuration files
 │   ├── libs/                   # Shared libraries
@@ -77,8 +77,8 @@ A comprehensive file management system with REST API, secure storage, and SyftBo
 ### Bot Knowledge
 A FastAPI ChromaDB Vector Database API for document management and vector similarity search. See [projects/bot-knowledge/README.md](projects/bot-knowledge/README.md) for details.
 
-### Project Three
-[Coming soon] - See [projects/project-three/README.md](projects/project-three/README.md)
+### LLM Chat
+FastAPI-based chat application with real-time streaming responses and session management - See [projects/llm-chat/README.md](projects/llm-chat/README.md)
 
 ## Development
 

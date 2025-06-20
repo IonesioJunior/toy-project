@@ -14,7 +14,7 @@ dev-dependencies = [
 members = [
     "projects/file-manager-api",
     "projects/bot-knowledge",
-    "projects/project-three",
+    "projects/llm-chat",
     "shared",
 ]
 
