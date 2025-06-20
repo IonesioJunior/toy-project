@@ -1,4 +1,4 @@
-# Project Three Justfile
+# LLM Chat Justfile
 
 # Default recipe shows available commands
 default:
@@ -72,11 +72,11 @@ build:
 
 # Build Docker image
 docker-build:
-    docker build -f docker/Dockerfile -t project-three:latest .
+    docker build -f Dockerfile -t llm-chat:latest .
 
 # Run Docker container
 docker-run:
-    docker run project-three:latest
+    docker run llm-chat:latest
 
 # Create source distribution
 dist:
@@ -96,7 +96,7 @@ watch:
 
 # Show project info
 info:
-    @echo "Project: project-three"
+    @echo "Project: llm-chat"
     @echo "Version: 0.1.0"
     @echo "Python: >=3.13"
 
