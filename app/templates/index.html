@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #2c3e50;
+        }
+
+        .upload-section {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .drop-zone {
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-color: #fafafa;
+        }
+
+        .drop-zone:hover, .drop-zone.drag-over {
+            border-color: #4CAF50;
+            background-color: #f1f8f4;
+        }
+
+        .drop-zone p {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .upload-info {
+            margin-top: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .stats-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 15px;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .file-list-section {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .file-list-section h2 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #218838;
+        }
+
+        .btn-info {
+            background-color: #17a2b8;
+            color: white;
+        }
+
+        .btn-info:hover {
+            background-color: #138496;
+        }
+
+        .message {
+            padding: 12px 20px;
+            border-radius: 4px;
+            margin: 20px 0;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .message-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .message-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .file-size {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .syft-url {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+            word-break: break-all;
+        }
+
+        .update-form {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .update-form input {
+            margin-right: 10px;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 30px;
+            border: 1px solid #888;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            animation: slideIn 0.3s ease;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: #2c3e50;
+        }
+
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #000;
+        }
+
+        .permission-form {
+            margin-bottom: 20px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .form-group select,
+        .form-group input[type="email"] {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            font-weight: normal;
+            cursor: pointer;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            margin-right: 5px;
+        }
+
+        .permission-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .permission-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            border: 1px solid #e9ecef;
+        }
+
+        .permission-item:hover {
+            background-color: #e9ecef;
+        }
+
+        .permission-info {
+            flex-grow: 1;
+        }
+
+        .permission-user {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .permission-types {
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 4px;
+        }
+
+        .permission-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .file-list-section {
+                overflow-x: auto;
+            }
+
+            table {
+                min-width: 600px;
+            }
+
+            .file-actions {
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .btn {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>File Management System</h1>
+        
+        <!-- Upload Section -->
+        <div class="upload-section">
+            <div class="drop-zone" id="dropZone">
+                <p>Drag and drop files here or click to select</p>
+                <input type="file" id="fileInput" multiple style="display: none;">
+            </div>
+            <div class="upload-info">
+                <p>Maximum file size: {{ max_file_size_mb }} MB</p>
+                <p>Allowed file types: {{ allowed_extensions|join(', ') }}</p>
+            </div>
+        </div>
+        
+        <!-- Storage Stats -->
+        <div class="stats-section" id="statsSection">
+            <div class="stat-card">
+                <div class="stat-value" id="totalFiles">-</div>
+                <div class="stat-label">Total Files</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalSize">-</div>
+                <div class="stat-label">Total Size</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ max_file_size_mb }} MB</div>
+                <div class="stat-label">Max File Size</div>
+            </div>
+        </div>
+        
+        <!-- File List -->
+        <div class="file-list-section">
+            <h2>Uploaded Files</h2>
+            <div id="fileListContainer">
+                <table id="fileTable">
+                    <thead>
+                        <tr>
+                            <th>Filename</th>
+                            <th>Size</th>
+                            <th>Upload Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fileTableBody">
+                        <tr>
+                            <td colspan="4" class="empty-state">No files uploaded yet</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Messages -->
+        <div id="messageArea"></div>
+    </div>
+    
+    <!-- Permission Management Modal -->
+    <div id="permissionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Manage Permissions - <span id="permissionFileName"></span></h2>
+                <span class="close" onclick="closePermissionModal()">&times;</span>
+            </div>
+            
+            <!-- Add Permission Form -->
+            <div class="permission-form">
+                <h3>Grant New Permission</h3>
+                <div class="form-group">
+                    <label for="datasiteSelect">Select Datasite:</label>
+                    <select id="datasiteSelect">
+                        <option value="">Choose a datasite...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Permissions:</label>
+                    <div class="checkbox-group">
+                        <label>
+                            <input type="checkbox" name="permission" value="READ" checked>
+                            READ (View & Download)
+                        </label>
+                        <label>
+                            <input type="checkbox" name="permission" value="WRITE">
+                            WRITE (Modify)
+                        </label>
+                        <label>
+                            <input type="checkbox" name="permission" value="CREATE">
+                            CREATE (Create files)
+                        </label>
+                        <label>
+                            <input type="checkbox" name="permission" value="ADMIN">
+                            ADMIN (Full control)
+                        </label>
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary" onclick="grantPermission()">Grant Permission</button>
+            </div>
+            
+            <!-- Current Permissions List -->
+            <div>
+                <h3>Current Permissions</h3>
+                <div id="permissionList" class="permission-list">
+                    <p class="empty-state">Loading permissions...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Constants
+        const MAX_FILE_SIZE = {{ max_file_size }};
+        const ALLOWED_EXTENSIONS = {{ allowed_extensions|tojson }};
+        
+        // DOM Elements
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const fileTableBody = document.getElementById('fileTableBody');
+        const messageArea = document.getElementById('messageArea');
+        const totalFilesElement = document.getElementById('totalFiles');
+        const totalSizeElement = document.getElementById('totalSize');
+        const permissionModal = document.getElementById('permissionModal');
+        const datasiteSelect = document.getElementById('datasiteSelect');
+        const permissionList = document.getElementById('permissionList');
+        
+        // Permission management state
+        let currentFileId = null;
+        let currentFileName = null;
+        let availableDatasites = [];
+        
+        // Utility Functions
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString();
+        }
+        
+        function showMessage(type, message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message message-${type}`;
+            messageDiv.textContent = message;
+            messageArea.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 5000);
+        }
+        
+        function validateFile(file) {
+            // Check file size
+            if (file.size > MAX_FILE_SIZE) {
+                showMessage('error', `File "${file.name}" exceeds the maximum size of ${MAX_FILE_SIZE / (1024 * 1024)} MB`);
+                return false;
+            }
+            
+            // Check file extension
+            const extension = '.' + file.name.split('.').pop().toLowerCase();
+            if (!ALLOWED_EXTENSIONS.includes(extension)) {
+                showMessage('error', `File type "${extension}" is not allowed`);
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // API Functions
+        async function uploadFile(file) {
+            if (!validateFile(file)) {
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                const response = await fetch('/api/files/', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Upload failed');
+                }
+                
+                const result = await response.json();
+                showMessage('success', `File "${result.filename}" uploaded successfully`);
+                await refreshFileList();
+                await updateStats();
+                return result;
+            } catch (error) {
+                showMessage('error', `Upload failed: ${error.message}`);
+                throw error;
+            }
+        }
+        
+        async function refreshFileList() {
+            try {
+                const response = await fetch('/api/files/');
+                const data = await response.json();
+                
+                fileTableBody.innerHTML = '';
+                
+                if (data.files.length === 0) {
+                    fileTableBody.innerHTML = '<tr><td colspan="4" class="empty-state">No files uploaded yet</td></tr>';
+                    return;
+                }
+                
+                data.files.forEach(file => {
+                    const row = createFileRow(file);
+                    fileTableBody.appendChild(row);
+                });
+            } catch (error) {
+                showMessage('error', 'Failed to load files');
+            }
+        }
+        
+        async function downloadFile(fileId, filename) {
+            try {
+                const response = await fetch(`/api/files/${fileId}`);
+                
+                if (!response.ok) {
+                    throw new Error('Download failed');
+                }
+                
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+                showMessage('success', `File "${filename}" downloaded`);
+            } catch (error) {
+                showMessage('error', `Download failed: ${error.message}`);
+            }
+        }
+        
+        async function deleteFile(fileId, filename) {
+            if (!confirm(`Are you sure you want to delete "${filename}"?`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/files/${fileId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Delete failed');
+                }
+                
+                showMessage('success', `File "${filename}" deleted successfully`);
+                await refreshFileList();
+                await updateStats();
+            } catch (error) {
+                showMessage('error', `Delete failed: ${error.message}`);
+            }
+        }
+        
+        async function updateFile(fileId, newFile, updateForm) {
+            if (!validateFile(newFile)) {
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', newFile);
+            
+            try {
+                const response = await fetch(`/api/files/${fileId}`, {
+                    method: 'PUT',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Update failed');
+                }
+                
+                const result = await response.json();
+                showMessage('success', `File updated to "${result.filename}"`);
+                updateForm.style.display = 'none';
+                await refreshFileList();
+                await updateStats();
+            } catch (error) {
+                showMessage('error', `Update failed: ${error.message}`);
+            }
+        }
+        
+        async function updateStats() {
+            try {
+                const response = await fetch('/api/files/stats/summary');
+                const stats = await response.json();
+                
+                totalFilesElement.textContent = stats.total_files;
+                totalSizeElement.textContent = formatFileSize(stats.total_size);
+            } catch (error) {
+                console.error('Failed to update stats:', error);
+            }
+        }
+        
+        // UI Functions
+        function createFileRow(file) {
+            const row = document.createElement('tr');
+            
+            const nameCell = document.createElement('td');
+            nameCell.innerHTML = `
+                ${file.filename}
+                ${file.syft_url ? `<div class="syft-url">Syft URL: ${file.syft_url}</div>` : ''}
+            `;
+            
+            const sizeCell = document.createElement('td');
+            sizeCell.innerHTML = `<span class="file-size">${formatFileSize(file.size)}</span>`;
+            
+            const dateCell = document.createElement('td');
+            dateCell.textContent = formatDate(file.upload_date);
+            
+            const actionsCell = document.createElement('td');
+            actionsCell.innerHTML = `
+                <div class="file-actions">
+                    <button class="btn btn-primary" onclick="downloadFile('${file.id}', '${file.filename}')">Download</button>
+                    <button class="btn btn-success" onclick="showUpdateForm('${file.id}', this)">Update</button>
+                    <button class="btn btn-info" onclick="showPermissionManager('${file.id}', '${file.filename}')">Permissions</button>
+                    <button class="btn btn-danger" onclick="deleteFile('${file.id}', '${file.filename}')">Delete</button>
+                </div>
+                <div class="update-form" id="update-form-${file.id}">
+                    <input type="file" id="update-input-${file.id}">
+                    <button class="btn btn-success" onclick="handleUpdate('${file.id}')">Confirm</button>
+                    <button class="btn btn-danger" onclick="hideUpdateForm('${file.id}')">Cancel</button>
+                </div>
+            `;
+            
+            row.appendChild(nameCell);
+            row.appendChild(sizeCell);
+            row.appendChild(dateCell);
+            row.appendChild(actionsCell);
+            
+            return row;
+        }
+        
+        function showUpdateForm(fileId, button) {
+            // Hide all other update forms
+            document.querySelectorAll('.update-form').forEach(form => {
+                form.style.display = 'none';
+            });
+            
+            const updateForm = document.getElementById(`update-form-${fileId}`);
+            updateForm.style.display = 'block';
+        }
+        
+        function hideUpdateForm(fileId) {
+            const updateForm = document.getElementById(`update-form-${fileId}`);
+            updateForm.style.display = 'none';
+        }
+        
+        async function handleUpdate(fileId) {
+            const fileInput = document.getElementById(`update-input-${fileId}`);
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showMessage('error', 'Please select a file');
+                return;
+            }
+            
+            const updateForm = document.getElementById(`update-form-${fileId}`);
+            await updateFile(fileId, file, updateForm);
+        }
+        
+        // Permission Management Functions
+        async function fetchAvailableDatasites() {
+            try {
+                const response = await fetch('/api/datasites');
+                const data = await response.json();
+                availableDatasites = data.datasites;
+                
+                // Populate the select dropdown
+                datasiteSelect.innerHTML = '<option value="">Choose a datasite...</option>';
+                availableDatasites.forEach(datasite => {
+                    const option = document.createElement('option');
+                    option.value = datasite;
+                    option.textContent = datasite;
+                    datasiteSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Failed to fetch datasites:', error);
+                showMessage('error', 'Failed to load available datasites');
+            }
+        }
+        
+        async function showPermissionManager(fileId, filename) {
+            currentFileId = fileId;
+            currentFileName = filename;
+            
+            // Update modal header
+            document.getElementById('permissionFileName').textContent = filename;
+            
+            // Reset form
+            datasiteSelect.value = '';
+            document.querySelectorAll('input[name="permission"]').forEach(cb => {
+                cb.checked = cb.value === 'READ';
+            });
+            
+            // Show modal
+            permissionModal.style.display = 'block';
+            
+            // Fetch available datasites and current permissions
+            await fetchAvailableDatasites();
+            await fetchFilePermissions(fileId);
+        }
+        
+        function closePermissionModal() {
+            permissionModal.style.display = 'none';
+            currentFileId = null;
+            currentFileName = null;
+        }
+        
+        async function fetchFilePermissions(fileId) {
+            try {
+                const response = await fetch(`/api/files/${fileId}/permissions`);
+                const data = await response.json();
+                
+                renderPermissionList(data.permissions);
+            } catch (error) {
+                console.error('Failed to fetch permissions:', error);
+                permissionList.innerHTML = '<p class="empty-state">Failed to load permissions</p>';
+            }
+        }
+        
+        function renderPermissionList(permissions) {
+            if (!permissions || permissions.length === 0) {
+                permissionList.innerHTML = '<p class="empty-state">No permissions granted yet</p>';
+                return;
+            }
+            
+            permissionList.innerHTML = '';
+            permissions.forEach(perm => {
+                const permItem = document.createElement('div');
+                permItem.className = 'permission-item';
+                permItem.innerHTML = `
+                    <div class="permission-info">
+                        <div class="permission-user">${perm.user}</div>
+                        <div class="permission-types">${perm.permissions.join(', ')}</div>
+                    </div>
+                    <div class="permission-actions">
+                        ${perm.user !== 'dev@test.local' ? `
+                            <button class="btn btn-sm btn-primary" onclick="editPermission('${perm.id}', '${perm.user}', '${perm.permissions.join(',')}')">Edit</button>
+                            <button class="btn btn-sm btn-danger" onclick="revokePermission('${perm.id}')">Revoke</button>
+                        ` : '<span style="color: #666; font-size: 14px;">Owner</span>'}
+                    </div>
+                `;
+                permissionList.appendChild(permItem);
+            });
+        }
+        
+        async function grantPermission() {
+            const selectedDatasite = datasiteSelect.value;
+            if (!selectedDatasite) {
+                showMessage('error', 'Please select a datasite');
+                return;
+            }
+            
+            const selectedPermissions = [];
+            document.querySelectorAll('input[name="permission"]:checked').forEach(cb => {
+                selectedPermissions.push(cb.value);
+            });
+            
+            if (selectedPermissions.length === 0) {
+                showMessage('error', 'Please select at least one permission');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/files/${currentFileId}/permissions`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user: selectedDatasite,
+                        permissions: selectedPermissions
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to grant permission');
+                }
+                
+                showMessage('success', `Permissions granted to ${selectedDatasite}`);
+                
+                // Reset form and refresh list
+                datasiteSelect.value = '';
+                document.querySelectorAll('input[name="permission"]').forEach(cb => {
+                    cb.checked = cb.value === 'READ';
+                });
+                await fetchFilePermissions(currentFileId);
+            } catch (error) {
+                showMessage('error', `Failed to grant permission: ${error.message}`);
+            }
+        }
+        
+        async function editPermission(permissionId, user, permissions) {
+            // Pre-fill the form with current permissions
+            datasiteSelect.value = user;
+            const permArray = permissions.split(',');
+            document.querySelectorAll('input[name="permission"]').forEach(cb => {
+                cb.checked = permArray.includes(cb.value);
+            });
+            
+            // Change button to update mode
+            const grantBtn = document.querySelector('.permission-form button');
+            grantBtn.textContent = 'Update Permission';
+            grantBtn.onclick = async () => {
+                await updatePermission(permissionId);
+                grantBtn.textContent = 'Grant Permission';
+                grantBtn.onclick = grantPermission;
+            };
+        }
+        
+        async function updatePermission(permissionId) {
+            const selectedPermissions = [];
+            document.querySelectorAll('input[name="permission"]:checked').forEach(cb => {
+                selectedPermissions.push(cb.value);
+            });
+            
+            if (selectedPermissions.length === 0) {
+                showMessage('error', 'Please select at least one permission');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/files/${currentFileId}/permissions/${permissionId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        permissions: selectedPermissions
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to update permission');
+                }
+                
+                showMessage('success', 'Permission updated successfully');
+                
+                // Reset form and refresh list
+                datasiteSelect.value = '';
+                document.querySelectorAll('input[name="permission"]').forEach(cb => {
+                    cb.checked = cb.value === 'READ';
+                });
+                await fetchFilePermissions(currentFileId);
+            } catch (error) {
+                showMessage('error', `Failed to update permission: ${error.message}`);
+            }
+        }
+        
+        async function revokePermission(permissionId) {
+            if (!confirm('Are you sure you want to revoke this permission?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/files/${currentFileId}/permissions/${permissionId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to revoke permission');
+                }
+                
+                showMessage('success', 'Permission revoked successfully');
+                await fetchFilePermissions(currentFileId);
+            } catch (error) {
+                showMessage('error', `Failed to revoke permission: ${error.message}`);
+            }
+        }
+        
+        // Event Listeners
+        dropZone.addEventListener('click', () => fileInput.click());
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+        
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('drag-over');
+        });
+        
+        dropZone.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            
+            const files = Array.from(e.dataTransfer.files);
+            for (const file of files) {
+                await uploadFile(file);
+            }
+        });
+        
+        fileInput.addEventListener('change', async (e) => {
+            const files = Array.from(e.target.files);
+            for (const file of files) {
+                await uploadFile(file);
+            }
+            fileInput.value = '';
+        });
+        
+        // Close modal when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target === permissionModal) {
+                closePermissionModal();
+            }
+        });
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            await refreshFileList();
+            await updateStats();
+        });
+    </script>
+</body>
+</html>
