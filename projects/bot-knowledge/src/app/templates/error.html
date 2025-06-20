@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Error - ChromaDB Document Manager{% endblock %}
+
+{% block content %}
+<div class="text-center py-16">
+    <div class="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+        <i data-feather="alert-circle" class="w-12 h-12 text-red-600"></i>
+    </div>
+    
+    <h1 class="text-3xl font-bold text-gray-900 mb-4">Oops! Something went wrong</h1>
+    
+    {% if error %}
+        <p class="text-lg text-gray-600 mb-8 max-w-md mx-auto">{{ error }}</p>
+    {% else %}
+        <p class="text-lg text-gray-600 mb-8 max-w-md mx-auto">
+            We encountered an unexpected error. Please try again or contact support if the problem persists.
+        </p>
+    {% endif %}
+    
+    <div class="flex items-center justify-center space-x-4">
+        <button onclick="history.back()" class="btn btn-secondary">
+            <i data-feather="arrow-left" class="w-4 h-4 mr-2"></i>
+            Go Back
+        </button>
+        <a href="/" class="btn btn-primary">
+            <i data-feather="home" class="w-4 h-4 mr-2"></i>
+            Go Home
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -13,7 +13,7 @@ dev-dependencies = [
 [tool.uv.workspace]
 members = [
     "projects/file-manager-api",
-    "projects/project-two",
+    "projects/bot-knowledge",
     "projects/llm-chat",
     "shared",
 ]

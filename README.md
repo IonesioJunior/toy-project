@@ -7,7 +7,7 @@ A modern monorepo structure for managing multiple related projects with shared i
 This monorepo contains multiple projects organized in a clean, scalable architecture:
 
 - **File Manager API**: A FastAPI-based file management system with SyftBox integration
-- **Project Two**: [Future project placeholder]
+- **Bot Knowledge**: FastAPI ChromaDB Vector Database API
 - **LLM Chat**: A FastAPI-based chat application powered by OpenAI's GPT-4 Mini
 
 ## Repository Structure
@@ -16,7 +16,7 @@ This monorepo contains multiple projects organized in a clean, scalable architec
 toy_project/
 ├── projects/                    # Individual projects
 │   ├── file-manager-api/       # File management API service
-│   ├── project-two/            # Future project
+│   ├── bot-knowledge/          # FastAPI ChromaDB Vector Database API
 │   └── llm-chat/               # LLM Chat application
 ├── shared/                      # Shared code and utilities
 │   ├── configs/                # Shared configuration files
@@ -74,8 +74,8 @@ toy_project/
 ### File Manager API
 A comprehensive file management system with REST API, secure storage, and SyftBox integration. See [projects/file-manager-api/README.md](projects/file-manager-api/README.md) for details.
 
-### Project Two
-[Coming soon] - See [projects/project-two/README.md](projects/project-two/README.md)
+### Bot Knowledge
+A FastAPI ChromaDB Vector Database API for document management and vector similarity search. See [projects/bot-knowledge/README.md](projects/bot-knowledge/README.md) for details.
 
 ### LLM Chat
 FastAPI-based chat application with real-time streaming responses and session management - See [projects/llm-chat/README.md](projects/llm-chat/README.md)

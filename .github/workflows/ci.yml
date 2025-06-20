@@ -209,14 +209,17 @@ jobs:
           uv sync --all-extras
 
       - name: Run unit tests
+        env:
+          APP_ENV: testing
+          CHROMA_TELEMETRY_DISABLED: 1
+          PYTHONUNBUFFERED: 1
         run: |
           cd projects/${{ matrix.project }}
-          # Set APP_ENV to testing to ensure the app uses MockSyftClient instead of requiring real SyftBox configuration
           # Adjust coverage source path based on project structure
           if [ -d "src/app" ]; then
-            APP_ENV=testing uv run pytest -m "not integration" --cov=src/app --cov-report=xml --cov-report=term-missing
+            uv run pytest -m "not integration" --cov=src/app --cov-report=xml --cov-report=term-missing
           else
-            APP_ENV=testing uv run pytest -m "not integration" --cov=src --cov-report=xml --cov-report=term-missing
+            uv run pytest -m "not integration" --cov=src --cov-report=xml --cov-report=term-missing
           fi
 
       - name: Upload coverage to Codecov

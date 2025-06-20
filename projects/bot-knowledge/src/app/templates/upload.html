@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+
+{% block title %}Upload - ChromaDB Document Manager{% endblock %}
+
+{% block content %}
+<!-- Upload Header - Minimalist Design -->
+<div style="margin-bottom: var(--space-8);">
+    <h1 style="font-size: var(--text-4xl); font-weight: var(--font-bold); color: var(--color-gray-900); margin-bottom: var(--space-2); margin-top: 0;">Upload Documents</h1>
+    <p style="color: var(--color-gray-600); font-size: var(--text-base); margin: 0; line-height: 1.5;">Add new documents to your collection by uploading files or entering text directly</p>
+</div>
+
+<!-- Upload Methods - Enhanced Minimalist Design -->
+<div id="upload-grid" style="display: grid; grid-template-columns: 1fr; gap: var(--space-8); margin-bottom: var(--space-8);">
+    <!-- File Upload -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Upload Files</h2>
+            <span style="font-size: var(--text-sm); color: var(--color-gray-500);">Drag & drop or browse</span>
+        </div>
+        
+        <!-- Drop Zone -->
+        <div id="drop-zone" class="upload-zone drag-zone">
+            <div class="upload-icon">
+                <i data-feather="upload-cloud" class="w-12 h-12"></i>
+            </div>
+            <div class="upload-text">Drop files here or click to browse</div>
+            <div class="upload-subtext">
+                Supports: .txt, .md, .csv, .json, .html, .xml, .log
+                <br>
+                Maximum file size: 10MB
+            </div>
+            <input type="file" id="file-input" multiple accept=".txt,.md,.csv,.json,.html,.xml,.log" class="hidden">
+        </div>
+        
+        <!-- File List -->
+        <div id="file-list" style="margin-top: var(--space-4); display: none;">
+            <h3 style="font-size: var(--text-sm); font-weight: var(--font-medium); color: var(--color-gray-900); margin-bottom: var(--space-2);">Selected Files</h3>
+            <div id="file-items" style="display: flex; flex-direction: column; gap: var(--space-2);"></div>
+        </div>
+        
+        <!-- Upload Controls -->
+        <div id="upload-controls" style="margin-top: var(--space-4); display: flex; align-items: center; justify-content: space-between; display: none;">
+            <div style="font-size: var(--text-sm); color: var(--color-gray-600);">
+                <span id="file-count">0</span> files selected
+            </div>
+            <div style="display: flex; gap: var(--space-2);">
+                <button id="clear-files" class="btn btn-secondary btn-sm">
+                    <i data-feather="x" style="width: var(--space-2); height: var(--space-2); margin-right: var(--space-1);"></i>
+                    Clear
+                </button>
+                <button id="upload-files" class="btn btn-primary btn-sm">
+                    <i data-feather="upload" style="width: var(--space-2); height: var(--space-2); margin-right: var(--space-1);"></i>
+                    Upload Files
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Text Input -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Add Text Document</h2>
+            <span style="font-size: var(--text-sm); color: var(--color-gray-500);">Create from text input</span>
+        </div>
+        
+        <form id="text-form" style="display: flex; flex-direction: column; gap: var(--space-4);">
+            <div class="form-group">
+                <label for="document-id" class="form-label">Document ID</label>
+                <input type="text" id="document-id" class="form-input" 
+                       placeholder="e.g., my_document_001" required>
+                <div class="form-error" id="id-error"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="document-content" class="form-label">Content</label>
+                <textarea id="document-content" class="form-textarea" rows="8" 
+                          placeholder="Enter your document content here..." required 
+                          style="min-height: 200px;"></textarea>
+                <div style="font-size: var(--text-sm); color: var(--color-gray-500); margin-top: var(--space-1);">
+                    <span id="char-count">0</span> characters
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="document-category" class="form-label">Category</label>
+                <input type="text" id="document-category" class="form-input" 
+                       placeholder="e.g., research, notes, documentation">
+            </div>
+            
+            <div class="form-group">
+                <label for="document-author" class="form-label">Author</label>
+                <input type="text" id="document-author" class="form-input" 
+                       placeholder="Your name">
+            </div>
+            
+            <div class="form-group">
+                <label for="document-tags" class="form-label">Tags</label>
+                <input type="text" id="document-tags" class="form-input" 
+                       placeholder="tag1, tag2, tag3">
+                <div style="font-size: var(--text-sm); color: var(--color-gray-500); margin-top: var(--space-1);">Separate tags with commas</div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%;">
+                <i data-feather="plus" style="width: var(--space-2); height: var(--space-2); margin-right: var(--space-1);"></i>
+                Create Document
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Upload Grid Responsive CSS -->
+<style>
+@media (min-width: 1024px) {
+    #upload-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+</style>
+
+<!-- Upload Progress - Minimalist Design -->
+<div id="upload-progress" class="card hidden">
+    <div class="card-header">
+        <h3 class="card-title">Upload Progress</h3>
+        <div style="font-size: var(--text-sm); color: var(--color-gray-500);">
+            <span id="progress-text">Preparing upload...</span>
+        </div>
+    </div>
+    
+    <!-- Overall Progress -->
+    <div style="margin-bottom: var(--space-4);">
+        <div style="display: flex; justify-content: space-between; font-size: var(--text-sm); color: var(--color-gray-600); margin-bottom: var(--space-1);">
+            <span>Overall Progress</span>
+            <span id="overall-percentage">0%</span>
+        </div>
+        <div style="width: 100%; background: var(--color-gray-200); border-radius: var(--radius-xl); height: var(--space-1); overflow: hidden;">
+            <div id="overall-progress-bar" style="background: var(--color-blue-600); height: 100%; border-radius: var(--radius-xl); transition: width var(--transition-slow); width: 0%;"></div>
+        </div>
+    </div>
+    
+    <!-- Individual File Progress -->
+    <div id="upload-items" style="display: flex; flex-direction: column; gap: var(--space-3);"></div>
+    
+    <!-- Upload Summary -->
+    <div id="upload-summary" style="margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--color-gray-200); display: none;">
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); text-align: center;">
+            <div>
+                <div style="font-size: var(--text-3xl); font-weight: var(--font-bold); color: var(--color-green-600);" id="success-count">0</div>
+                <div style="font-size: var(--text-sm); color: var(--color-gray-500);">Successful</div>
+            </div>
+            <div>
+                <div style="font-size: var(--text-3xl); font-weight: var(--font-bold); color: var(--color-red-600);" id="error-count">0</div>
+                <div style="font-size: var(--text-sm); color: var(--color-gray-500);">Failed</div>
+            </div>
+            <div>
+                <div style="font-size: var(--text-3xl); font-weight: var(--font-bold); color: var(--color-gray-600);" id="total-count">0</div>
+                <div style="font-size: var(--text-sm); color: var(--color-gray-500);">Total</div>
+            </div>
+        </div>
+        
+        <div style="margin-top: var(--space-4); display: flex; justify-content: center; gap: var(--space-3);">
+            <button id="view-documents" class="btn btn-primary">
+                <i data-feather="folder" style="width: var(--space-2); height: var(--space-2); margin-right: var(--space-1);"></i>
+                View Documents
+            </button>
+            <button id="upload-more" class="btn btn-secondary">
+                <i data-feather="plus" style="width: var(--space-2); height: var(--space-2); margin-right: var(--space-1);"></i>
+                Upload More
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Uploads - Minimalist Design -->
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Recent Uploads</h3>
+        <button id="refresh-recent" style="font-size: var(--text-sm); color: var(--color-gray-500); transition: color var(--transition-normal); border: none; background: none; cursor: pointer; padding: var(--space-1); border-radius: var(--radius-sm);"
+                onmouseover="this.style.color='var(--color-gray-700)'"
+                onmouseout="this.style.color='var(--color-gray-500)'">
+            <i data-feather="refresh-cw" style="width: var(--space-2); height: var(--space-2);"></i>
+        </button>
+    </div>
+    
+    <div id="recent-uploads">
+        <div id="recent-loading" style="text-align: center; padding: var(--space-8) 0;">
+            <div class="spinner" style="margin: 0 auto var(--space-4);"></div>
+            <p style="color: var(--color-gray-500); font-size: var(--text-sm); margin: 0;">Loading recent uploads...</p>
+        </div>
+        
+        <div id="recent-list" style="display: flex; flex-direction: column; gap: var(--space-3); display: none;"></div>
+        
+        <div id="recent-empty" style="text-align: center; padding: var(--space-8) 0; display: none;">
+            <i data-feather="inbox" style="width: var(--space-12); height: var(--space-12); margin: 0 auto var(--space-4); color: var(--color-gray-300);"></i>
+            <p style="color: var(--color-gray-500); font-size: var(--text-sm); margin: 0;">No recent uploads</p>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Metadata Modal - Minimalist Design -->
+<div id="bulk-metadata-modal" style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 50;" class="hidden">
+    <div style="background: var(--color-white); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); width: 100%; max-width: 512px; margin: 0 var(--space-4);">
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: var(--space-6); border-bottom: 1px solid var(--color-gray-200);">
+            <h2 style="font-size: var(--text-xl); font-weight: var(--font-semibold); color: var(--color-gray-900); margin: 0;">Bulk Metadata</h2>
+            <button id="close-bulk-modal" style="color: var(--color-gray-400); transition: color var(--transition-normal); border: none; background: none; cursor: pointer; padding: var(--space-1); border-radius: var(--radius-sm);"
+                    onmouseover="this.style.color='var(--color-gray-600)'"
+                    onmouseout="this.style.color='var(--color-gray-400)'">
+                <i data-feather="x" style="width: var(--space-6); height: var(--space-6);"></i>
+            </button>
+        </div>
+        <div style="padding: var(--space-6);">
+            <p style="color: var(--color-gray-600); margin-bottom: var(--space-4); font-size: var(--text-sm); line-height: 1.5;">Apply metadata to all selected files:</p>
+            <form id="bulk-metadata-form" style="display: flex; flex-direction: column; gap: var(--space-4);">
+                <div class="form-group">
+                    <label for="bulk-category" class="form-label">Category</label>
+                    <input type="text" id="bulk-category" class="form-input" 
+                           placeholder="e.g., documents, research">
+                </div>
+                
+                <div class="form-group">
+                    <label for="bulk-author" class="form-label">Author</label>
+                    <input type="text" id="bulk-author" class="form-input" 
+                           placeholder="Your name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="bulk-tags" class="form-label">Tags</label>
+                    <input type="text" id="bulk-tags" class="form-input" 
+                           placeholder="tag1, tag2, tag3">
+                </div>
+            </form>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: flex-end; gap: var(--space-3); padding: var(--space-6); border-top: 1px solid var(--color-gray-200);">
+            <button id="cancel-bulk-metadata" class="btn btn-secondary">Cancel</button>
+            <button id="apply-bulk-metadata" class="btn btn-primary">Apply Metadata</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="/static/js/upload.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize the upload page
+    UploadManager.init();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,327 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - ChromaDB Document Manager{% endblock %}
+
+{% block content %}
+<!-- Dashboard Header - Minimalist Design -->
+<div style="margin-bottom: var(--space-8);">
+    <h1 style="font-size: var(--text-4xl); font-weight: var(--font-bold); color: var(--color-gray-900); margin-bottom: var(--space-2); margin-top: 0;">Dashboard</h1>
+    <p style="color: var(--color-gray-600); font-size: var(--text-base); margin: 0;">Overview of your document collection and recent activity</p>
+</div>
+
+<!-- Statistics Cards - Enhanced Minimalist Design -->
+<div id="stats-grid" style="display: grid; grid-template-columns: 1fr; gap: var(--space-4); margin-bottom: var(--space-8);">
+    <!-- Total Documents -->
+    <div class="card">
+        <div style="display: flex; align-items: center;">
+            <div style="flex-shrink: 0;">
+                <div style="width: var(--space-8); height: var(--space-8); background: var(--color-blue-500); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center;">
+                    <i data-feather="file-text" style="width: var(--space-5); height: var(--space-5); color: var(--color-white);"></i>
+                </div>
+            </div>
+            <div style="margin-left: var(--space-4);">
+                <div style="font-size: var(--text-3xl); font-weight: var(--font-bold); color: var(--color-gray-900); line-height: 1;" id="total-documents">{{ total_documents }}</div>
+                <div style="font-size: var(--text-sm); color: var(--color-gray-500); margin-top: var(--space-1);">Total Documents</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Collections -->
+    <div class="card">
+        <div style="display: flex; align-items: center;">
+            <div style="flex-shrink: 0;">
+                <div style="width: var(--space-8); height: var(--space-8); background: var(--color-green-500); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center;">
+                    <i data-feather="database" style="width: var(--space-5); height: var(--space-5); color: var(--color-white);"></i>
+                </div>
+            </div>
+            <div style="margin-left: var(--space-4);">
+                <div style="font-size: var(--text-3xl); font-weight: var(--font-bold); color: var(--color-gray-900); line-height: 1;">1</div>
+                <div style="font-size: var(--text-sm); color: var(--color-gray-500); margin-top: var(--space-1);">Collections</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Storage Used -->
+    <div class="card">
+        <div style="display: flex; align-items: center;">
+            <div style="flex-shrink: 0;">
+                <div style="width: var(--space-8); height: var(--space-8); background: var(--color-yellow-500); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center;">
+                    <i data-feather="hard-drive" style="width: var(--space-5); height: var(--space-5); color: var(--color-white);"></i>
+                </div>
+            </div>
+            <div style="margin-left: var(--space-4);">
+                <div style="font-size: var(--text-3xl); font-weight: var(--font-bold); color: var(--color-gray-900); line-height: 1;" id="storage-used">-</div>
+                <div style="font-size: var(--text-sm); color: var(--color-gray-500); margin-top: var(--space-1);">Storage Used</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Health -->
+    <div class="card">
+        <div style="display: flex; align-items: center;">
+            <div style="flex-shrink: 0;">
+                <div style="width: var(--space-8); height: var(--space-8); background: var(--color-green-500); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center;" id="health-indicator">
+                    <i data-feather="heart" style="width: var(--space-5); height: var(--space-5); color: var(--color-white);"></i>
+                </div>
+            </div>
+            <div style="margin-left: var(--space-4);">
+                <div style="font-size: var(--text-3xl); font-weight: var(--font-bold); color: var(--color-gray-900); line-height: 1;" id="health-status">Healthy</div>
+                <div style="font-size: var(--text-sm); color: var(--color-gray-500); margin-top: var(--space-1);">API Status</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Responsive Grid CSS -->
+<style>
+@media (min-width: 768px) {
+    #stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    #stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+</style>
+
+<!-- Quick Actions - Minimalist Design -->
+<div id="actions-grid" style="display: grid; grid-template-columns: 1fr; gap: var(--space-4); margin-bottom: var(--space-8);">
+    <!-- Quick Upload -->
+    <div class="card" style="cursor: pointer; transition: all var(--transition-normal);" 
+         onclick="window.location.href='/upload'"
+         onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='var(--shadow-md)'"
+         onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-sm)'">
+        <div style="text-align: center; padding: var(--space-6) 0;">
+            <div style="width: var(--space-12); height: var(--space-12); background: rgba(59, 130, 246, 0.1); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-4);">
+                <i data-feather="upload" style="width: var(--space-6); height: var(--space-6); color: var(--color-blue-600);"></i>
+            </div>
+            <h3 style="font-size: var(--text-lg); font-weight: var(--font-semibold); color: var(--color-gray-900); margin-bottom: var(--space-2); margin-top: 0;">Upload Documents</h3>
+            <p style="color: var(--color-gray-600); font-size: var(--text-sm); margin: 0; line-height: 1.5;">Drag and drop files or browse to upload new documents</p>
+        </div>
+    </div>
+
+    <!-- Quick Search -->
+    <div class="card" style="cursor: pointer; transition: all var(--transition-normal);" 
+         onclick="window.location.href='/search'"
+         onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='var(--shadow-md)'"
+         onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-sm)'">
+        <div style="text-align: center; padding: var(--space-6) 0;">
+            <div style="width: var(--space-12); height: var(--space-12); background: rgba(34, 197, 94, 0.1); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-4);">
+                <i data-feather="search" style="width: var(--space-6); height: var(--space-6); color: var(--color-green-600);"></i>
+            </div>
+            <h3 style="font-size: var(--text-lg); font-weight: var(--font-semibold); color: var(--color-gray-900); margin-bottom: var(--space-2); margin-top: 0;">Search Documents</h3>
+            <p style="color: var(--color-gray-600); font-size: var(--text-sm); margin: 0; line-height: 1.5;">Find documents using semantic search or keywords</p>
+        </div>
+    </div>
+
+    <!-- Manage Collection -->
+    <div class="card" style="cursor: pointer; transition: all var(--transition-normal);" 
+         onclick="window.location.href='/documents'"
+         onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='var(--shadow-md)'"
+         onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-sm)'">
+        <div style="text-align: center; padding: var(--space-6) 0;">
+            <div style="width: var(--space-12); height: var(--space-12); background: rgba(147, 51, 234, 0.1); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-4);">
+                <i data-feather="folder" style="width: var(--space-6); height: var(--space-6); color: #9333ea;"></i>
+            </div>
+            <h3 style="font-size: var(--text-lg); font-weight: var(--font-semibold); color: var(--color-gray-900); margin-bottom: var(--space-2); margin-top: 0;">Manage Documents</h3>
+            <p style="color: var(--color-gray-600); font-size: var(--text-sm); margin: 0; line-height: 1.5;">View, edit, and organize your document collection</p>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions Responsive Grid CSS -->
+<style>
+@media (min-width: 1024px) {
+    #actions-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+</style>
+
+<!-- Recent Documents - Minimalist Design -->
+<div id="content-grid" style="display: grid; grid-template-columns: 1fr; gap: var(--space-6);">
+    <!-- Recent Documents List -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Recent Documents</h2>
+            <a href="/documents" style="color: var(--color-blue-600); font-size: var(--text-sm); font-weight: var(--font-medium); text-decoration: none; transition: color var(--transition-normal);"
+               onmouseover="this.style.color='var(--color-blue-700)'"
+               onmouseout="this.style.color='var(--color-blue-600)'">View All</a>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: var(--space-3);" id="recent-documents">
+            {% if recent_documents %}
+                {% for document in recent_documents %}
+                <div style="display: flex; align-items: flex-start; gap: var(--space-3); padding: var(--space-3); border-radius: var(--radius-lg); border: 1px solid var(--color-gray-100); transition: all var(--transition-normal); cursor: pointer;"
+                     onmouseover="this.style.background='var(--color-gray-50)'; this.style.borderColor='var(--color-gray-200)'"
+                     onmouseout="this.style.background='transparent'; this.style.borderColor='var(--color-gray-100)'"
+                     onclick="window.location.href='/document/{{ document.id }}'">
+                    <div style="flex-shrink: 0;">
+                        <div style="width: var(--space-4); height: var(--space-4); background: rgba(59, 130, 246, 0.1); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center;">
+                            <i data-feather="file-text" style="width: var(--space-2); height: var(--space-2); color: var(--color-blue-600);"></i>
+                        </div>
+                    </div>
+                    <div style="flex: 1; min-width: 0;">
+                        <h4 style="font-size: var(--text-sm); font-weight: var(--font-medium); color: var(--color-gray-900); margin-bottom: var(--space-1); margin-top: 0;">{{ document.id }}</h4>
+                        <p style="font-size: var(--text-xs); color: var(--color-gray-600); line-height: 1.4; margin: 0;" class="line-clamp-2">{{ document.content[:100] }}...</p>
+                        <div style="display: flex; align-items: center; margin-top: var(--space-2); gap: var(--space-2);">
+                            {% if document.metadata.get('category') %}
+                            <span class="badge badge-secondary">{{ document.metadata.category }}</span>
+                            {% endif %}
+                            <span style="font-size: var(--text-xs); color: var(--color-gray-400);">
+                                {% if document.updated_at %}
+                                    {{ document.updated_at.strftime('%m/%d/%Y') }}
+                                {% else %}
+                                    Recent
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    <div style="flex-shrink: 0;">
+                        <i data-feather="chevron-right" style="width: var(--space-2); height: var(--space-2); color: var(--color-gray-400);"></i>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div style="text-align: center; padding: var(--space-8) 0; color: var(--color-gray-500);">
+                    <i data-feather="inbox" style="width: var(--space-12); height: var(--space-12); margin: 0 auto var(--space-4); color: var(--color-gray-300);"></i>
+                    <p style="margin: 0 0 var(--space-1); font-size: var(--text-sm);">No documents yet</p>
+                    <p style="margin: 0; font-size: var(--text-xs);">Upload your first document to get started</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Activity Chart -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Document Activity</h2>
+        </div>
+        <div style="height: 256px;">
+            <canvas id="activity-chart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Content Grid Responsive CSS -->
+<style>
+@media (min-width: 1024px) {
+    #content-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+</style>
+
+{% if error %}
+<!-- Error Display - Minimalist Design -->
+<div class="card" style="border-color: var(--color-red-200); background: rgba(239, 68, 68, 0.05); margin-top: var(--space-8);">
+    <div style="display: flex; align-items: center;">
+        <div style="flex-shrink: 0;">
+            <i data-feather="alert-circle" style="width: var(--space-3); height: var(--space-3); color: var(--color-red-500);"></i>
+        </div>
+        <div style="margin-left: var(--space-3);">
+            <h3 style="font-size: var(--text-sm); font-weight: var(--font-medium); color: var(--color-red-800); margin: 0 0 var(--space-1);">Error</h3>
+            <p style="font-size: var(--text-sm); color: var(--color-red-700); margin: 0; line-height: 1.4;">{{ error }}</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', async function() {
+    // Check API health
+    try {
+        const health = await window.chromaAPI.checkHealth();
+        const healthIndicator = document.getElementById('health-indicator');
+        const healthStatus = document.getElementById('health-status');
+        
+        if (health.status === 'healthy') {
+            healthIndicator.innerHTML = '<i data-feather="heart" class="w-5 h-5 text-white"></i>';
+            healthIndicator.className = 'w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center';
+            healthStatus.textContent = 'Healthy';
+        } else {
+            healthIndicator.innerHTML = '<i data-feather="alert-triangle" class="w-5 h-5 text-white"></i>';
+            healthIndicator.className = 'w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center';
+            healthStatus.textContent = 'Unhealthy';
+        }
+        feather.replace();
+    } catch (error) {
+        console.error('Health check failed:', error);
+        const healthIndicator = document.getElementById('health-indicator');
+        const healthStatus = document.getElementById('health-status');
+        healthIndicator.innerHTML = '<i data-feather="x-circle" class="w-5 h-5 text-white"></i>';
+        healthIndicator.className = 'w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center';
+        healthStatus.textContent = 'Error';
+        feather.replace();
+    }
+
+    // Initialize activity chart
+    initializeActivityChart();
+});
+
+function initializeActivityChart() {
+    const ctx = document.getElementById('activity-chart').getContext('2d');
+    
+    // Sample data - in a real app, this would come from the API
+    const data = {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        datasets: [{
+            label: 'Documents Added',
+            data: [2, 5, 3, 8, 4, 6, 1],
+            borderColor: 'rgb(59, 130, 246)',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            tension: 0.4,
+            fill: true
+        }]
+    };
+
+    new Chart(ctx, {
+        type: 'line',
+        data: data,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            },
+            elements: {
+                point: {
+                    radius: 4,
+                    hoverRadius: 6
+                }
+            }
+        }
+    });
+}
+
+// Refresh data every 30 seconds
+setInterval(async function() {
+    try {
+        const health = await window.chromaAPI.checkHealth();
+        // Update health status if needed
+        console.log('Health status:', health.status);
+    } catch (error) {
+        console.error('Background health check failed:', error);
+    }
+}, 30000);
+</script>
+{% endblock %}
