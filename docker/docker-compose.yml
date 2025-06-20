@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  app-dev:
+    build:
+      context: .
+      target: development
+    ports:
+      - "8001:8000"
+    volumes:
+      - .:/app
+      - /app/__pycache__
+      - /app/.pytest_cache
+      - /app/.venv
+    environment:
+      - PYTHONUNBUFFERED=1
+      - APP_ENV=development
+
+  app-prod:
+    build:
+      context: .
+      target: production
+    ports:
+      - "8080:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+
+  test:
+    build:
+      context: .
+      target: development
+    volumes:
+      - .:/app
+      - /app/__pycache__
+      - /app/.pytest_cache
+    environment:
+      - PYTHONUNBUFFERED=1
+      - APP_ENV=testing
+    command: pytest -v
