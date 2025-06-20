@@ -241,7 +241,5 @@ jobs:
           docker run --rm \
             -e APP_ENV=testing \
             -e PYTHONUNBUFFERED=1 \
-            -v ${{ github.workspace }}:/app \
-            -w /app \
             toy-project:test \
-            pytest -v
+            sh -c "cd /app && .venv/bin/pytest -v"
