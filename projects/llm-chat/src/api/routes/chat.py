@@ -45,7 +45,8 @@ async def chat_endpoint(request: ChatRequest, http_request: Request) -> Streamin
                 yield f"data: {json.dumps({'type': 'done'})}\n\n"
                 
             except Exception as e:
-                error_data = json.dumps({"type": "error", "error": str(e)})
+                logger.error(f"Error in generate function: {str(e)}")
+                error_data = json.dumps({"type": "error", "error": "An internal error occurred."})
                 yield f"data: {error_data}\n\n"
         
         response = StreamingResponse(

@@ -70,7 +70,7 @@ class ChatService:
             
         except Exception as e:
             logger.error(f"Error processing message: {str(e)}")
-            yield f"Error: {str(e)}"
+            yield "An internal error occurred."
     
     async def clear_session(self, session_id: str) -> None:
         """Clear a specific session."""
