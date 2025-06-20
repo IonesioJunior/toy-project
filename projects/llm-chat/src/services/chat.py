@@ -38,7 +38,8 @@ class ChatService:
         new_session_id = session_id or str(uuid4())
         session = ChatSession(session_id=new_session_id)
         self.sessions[new_session_id] = session
-        logger.info(f"Created new session: {new_session_id}")
+        sanitized_session_id = new_session_id.replace('\r\n', '').replace('\n', '')
+        logger.info(f"Created new session: {sanitized_session_id}")
         return session
     
     async def process_message_stream(
