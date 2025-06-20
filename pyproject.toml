@@ -49,6 +49,7 @@ markers = [
 [tool.coverage.run]
 source = ["app"]
 omit = ["test/*", "venv/*", ".venv/*"]
+data_file = "/tmp/.coverage"
 
 [tool.coverage.report]
 exclude_lines = [

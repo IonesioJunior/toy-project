@@ -98,7 +98,7 @@ jobs:
           uv sync --extra dev
           
           # Run tests
-          uv run pytest test/ -v --tb=short || echo "tests_failed=true" >> $GITHUB_ENV
+          APP_ENV=testing uv run pytest test/ -v --tb=short || echo "tests_failed=true" >> $GITHUB_ENV
 
       - name: Commit changes
         if: steps.check_changes.outputs.has_changes == 'true'
