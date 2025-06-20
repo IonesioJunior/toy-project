@@ -4,7 +4,7 @@ from typing import AsyncIterator
 import json
 import logging
 
-from src.models.chat import ChatRequest, ChatResponse
+from src.models.chat import ChatRequest
 from src.services.chat import chat_service
 from src.core.exceptions import SessionNotFoundException
 
