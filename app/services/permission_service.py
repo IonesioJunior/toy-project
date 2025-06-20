@@ -406,20 +406,20 @@ class PermissionService:
         try:
             # Load permissions for the file
             perm_data = self._load_permissions(file_path)
-            
+
             # Check each rule to see if the user has the requested permission
             for rule in perm_data.get("rules", []):
                 if rule["user"] == user:
                     # Check if the rule allows this permission type
                     if permission_type.upper() in rule.get("permissions", []):
-                        return rule.get("allow", True)
-            
+                        return bool(rule.get("allow", True))
+
             # No matching rule found, check if user is owner via email match
             # The owner always has all permissions
             owner_email = perm_data.get("owner", self.syft_client.email)
             if user == owner_email:
                 return True
-                
+
             # Default to no permission
             return False
 
