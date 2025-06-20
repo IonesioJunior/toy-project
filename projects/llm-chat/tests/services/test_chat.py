@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
-from datetime import datetime
+
 
 from src.services.chat import ChatService
 from src.models.chat import ChatSession
