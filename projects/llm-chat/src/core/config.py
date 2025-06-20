@@ -1,12 +1,13 @@
 from pydantic_settings import BaseSettings
 from functools import lru_cache
+import os
 
 
 class Settings(BaseSettings):
     """Application settings."""
     
     # OpenAI Configuration
-    openai_api_key: str
+    openai_api_key: Optional[str] = None
     openai_model: str = "gpt-4o-mini"
     
     # Application Configuration
@@ -22,6 +23,12 @@ class Settings(BaseSettings):
     
     class Config:
         env_file = ".env"
+    
+    def model_post_init(self, __context) -> None:
+        """Validate settings after initialization."""
+        # Only require API key when not in test environment
+        if os.getenv("APP_ENV") != "testing" and not self.openai_api_key:
+            raise ValueError("openai_api_key is required when not in test mode")
 
 
 @lru_cache()

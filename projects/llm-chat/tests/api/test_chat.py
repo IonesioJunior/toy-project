@@ -1,15 +1,6 @@
 import pytest
-from fastapi.testclient import TestClient
 from unittest.mock import AsyncMock, patch
 import json
-
-from src.main import app
-
-
-@pytest.fixture
-def client():
-    """Create test client."""
-    return TestClient(app)
 
 
 class TestChatAPI:
