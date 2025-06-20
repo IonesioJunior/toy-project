@@ -49,7 +49,7 @@ class TestChatModels:
         session = ChatSession(session_id="test-session")
         
         # Mock settings to have max_history_length of 3
-        with patch('src.models.chat.get_settings') as mock_settings:
+        with patch('src.core.config.get_settings') as mock_settings:
             mock_settings.return_value.max_history_length = 3
             
             # Add 5 messages

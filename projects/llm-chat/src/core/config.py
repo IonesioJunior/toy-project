@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings
+from pydantic import ConfigDict
 from typing import Optional
 from functools import lru_cache
 import os
@@ -6,6 +7,8 @@ import os
 
 class Settings(BaseSettings):
     """Application settings."""
+    
+    model_config = ConfigDict(env_file=".env")
     
     # OpenAI Configuration
     openai_api_key: Optional[str] = None
@@ -21,9 +24,6 @@ class Settings(BaseSettings):
     
     # Streaming Configuration
     stream_chunk_size: int = 512
-    
-    class Config:
-        env_file = ".env"
     
     def model_post_init(self, __context) -> None:
         """Validate settings after initialization."""

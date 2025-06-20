@@ -79,13 +79,13 @@ async def chat_endpoint(request: ChatRequest, http_request: Request) -> Streamin
 @router.delete("/history")
 async def clear_history(request: Request) -> dict:
     """Clear chat history for the current session."""
+    # Get session ID from cookies
+    session_id = request.cookies.get("session_id")
+    
+    if not session_id:
+        raise HTTPException(status_code=400, detail="No session found")
+    
     try:
-        # Get session ID from cookies
-        session_id = request.cookies.get("session_id")
-        
-        if not session_id:
-            raise HTTPException(status_code=400, detail="No session found")
-        
         await chat_service.clear_session(session_id)
         
         return {"status": "success", "message": "Chat history cleared"}

@@ -1,5 +1,5 @@
 from typing import Dict, Optional, AsyncIterator
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import asyncio
 from uuid import uuid4
 import logging
@@ -31,7 +31,7 @@ class ChatService:
         """Get existing session or create a new one."""
         if session_id and session_id in self.sessions:
             session = self.sessions[session_id]
-            session.last_accessed = datetime.utcnow()
+            session.last_accessed = datetime.now(timezone.utc)
             return session
         
         # Create new session
@@ -88,7 +88,7 @@ class ChatService:
             try:
                 await asyncio.sleep(300)  # Check every 5 minutes
                 
-                cutoff_time = datetime.utcnow() - timedelta(
+                cutoff_time = datetime.now(timezone.utc) - timedelta(
                     minutes=self.settings.session_timeout_minutes
                 )
                 

@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, ConfigDict
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional, Literal
 from uuid import UUID, uuid4
 
@@ -12,7 +12,7 @@ class ChatMessage(BaseModel):
     id: UUID = Field(default_factory=uuid4)
     role: Literal["user", "assistant", "system"]
     content: str
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class ChatRequest(BaseModel):
@@ -34,14 +34,14 @@ class ChatSession(BaseModel):
     
     session_id: str
     messages: List[ChatMessage] = Field(default_factory=list)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    last_accessed: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    last_accessed: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     def add_message(self, role: Literal["user", "assistant"], content: str) -> None:
         """Add message to history maintaining max length."""
         message = ChatMessage(role=role, content=content)
         self.messages.append(message)
-        self.last_accessed = datetime.utcnow()
+        self.last_accessed = datetime.now(timezone.utc)
         
         # Keep only last max_history_length messages
         from src.core.config import get_settings
