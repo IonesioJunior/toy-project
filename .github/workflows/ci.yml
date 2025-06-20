@@ -203,13 +203,12 @@ jobs:
       - name: Run unit tests
         run: |
           cd projects/${{ matrix.project }}
-          source .venv/bin/activate
           # Set APP_ENV to testing to ensure the app uses MockSyftClient instead of requiring real SyftBox configuration
           # Adjust coverage source path based on project structure
           if [ -d "src/app" ]; then
-            APP_ENV=testing pytest -m "not integration" --cov=src/app --cov-report=xml --cov-report=term-missing
+            APP_ENV=testing uv run pytest -m "not integration" --cov=src/app --cov-report=xml --cov-report=term-missing
           else
-            APP_ENV=testing pytest -m "not integration" --cov=src --cov-report=xml --cov-report=term-missing
+            APP_ENV=testing uv run pytest -m "not integration" --cov=src --cov-report=xml --cov-report=term-missing
           fi
 
       - name: Upload coverage to Codecov
@@ -263,8 +262,7 @@ jobs:
           APP_ENV: ${{ matrix.env_mode }}
         run: |
           cd projects/${{ matrix.project }}
-          source .venv/bin/activate
-          pytest -m integration
+          uv run pytest -m integration
 
   build-docker:
     name: Build Docker Images (${{ matrix.project }})
@@ -374,7 +372,7 @@ jobs:
             -e PYTHONUNBUFFERED=1 \
             -v /tmp:/tmp \
             ${{ matrix.project }}:test \
-            sh -c "cd /app && .venv/bin/pytest -v"
+            sh -c "cd /app/projects/${{ matrix.project }} && uv run pytest -v"
 
   # Summary job to check if all matrix jobs passed
   ci-summary:
