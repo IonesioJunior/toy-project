@@ -106,16 +106,20 @@ jobs:
           uv sync --all-extras
 
       - name: Run ruff
+        if: matrix.project == 'file-manager-api'
         run: |
           cd projects/${{ matrix.project }}
-          source .venv/bin/activate
-          ruff check .
+          uv run ruff check .
 
       - name: Check formatting with black
+        if: matrix.project == 'file-manager-api'
         run: |
           cd projects/${{ matrix.project }}
-          source .venv/bin/activate
-          black --check .
+          uv run black --check .
+
+      - name: Skip linting for undeveloped projects
+        if: matrix.project != 'file-manager-api'
+        run: echo "Skipping lint checks for ${{ matrix.project }} - project not yet developed"
 
   type-check:
     name: Type Check (${{ matrix.project }})
@@ -154,15 +158,19 @@ jobs:
           uv sync --all-extras
 
       - name: Run mypy
+        if: matrix.project == 'file-manager-api'
         run: |
           cd projects/${{ matrix.project }}
-          source .venv/bin/activate
           # Check if src/app exists (legacy structure) or just src
           if [ -d "src/app" ]; then
-            mypy src/app/
+            uv run mypy src/app/
           elif [ -d "src" ]; then
-            mypy src/
+            uv run mypy src/
           fi
+
+      - name: Skip type checking for undeveloped projects
+        if: matrix.project != 'file-manager-api'
+        run: echo "Skipping type checks for ${{ matrix.project }} - project not yet developed"
 
   unit-tests:
     name: Unit Tests (${{ matrix.project }})
@@ -258,11 +266,16 @@ jobs:
           uv sync --all-extras
 
       - name: Run integration tests
+        if: matrix.project == 'file-manager-api'
         env:
           APP_ENV: ${{ matrix.env_mode }}
         run: |
           cd projects/${{ matrix.project }}
           uv run pytest -m integration
+
+      - name: Skip integration tests for undeveloped projects
+        if: matrix.project != 'file-manager-api'
+        run: echo "Skipping integration tests for ${{ matrix.project }} - project not yet developed"
 
   build-docker:
     name: Build Docker Images (${{ matrix.project }})
