@@ -63,6 +63,7 @@ async def chat_endpoint(request: ChatRequest, http_request: Request) -> Streamin
         response.set_cookie(
             key="session_id",
             value=session_id,
+            secure=True,
             httponly=True,
             samesite="lax",
             max_age=3600  # 1 hour
