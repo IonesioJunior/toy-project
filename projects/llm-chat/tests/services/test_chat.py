@@ -71,7 +71,7 @@ class TestChatService:
         service = ChatService()
         
         # Create a session
-        session = await service.get_or_create_session("test-session")
+        await service.get_or_create_session("test-session")
         assert "test-session" in service.sessions
         
         # Clear it
