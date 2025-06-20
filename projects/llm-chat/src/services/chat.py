@@ -76,7 +76,8 @@ class ChatService:
         """Clear a specific session."""
         if session_id in self.sessions:
             del self.sessions[session_id]
-            logger.info(f"Cleared session: {session_id}")
+            sanitized_session_id = session_id.replace('\r\n', '').replace('\n', '')
+            logger.info(f"Cleared session: {sanitized_session_id}")
         else:
             raise SessionNotFoundException(f"Session {session_id} not found")
     
