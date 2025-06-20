@@ -19,7 +19,9 @@ except ImportError:
         def __init__(self, path: Path) -> None:
             self.path = path
 
-        def has_permission(self, user_email: str, file_path: Path, permission: List[str]) -> bool:
+        def has_permission(
+            self, user_email: str, file_path: Path, permission: List[str]
+        ) -> bool:
             # In mock mode, only owner has permissions
             return False
 

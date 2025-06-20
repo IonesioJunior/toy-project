@@ -26,7 +26,9 @@ class ToyProjectUser(HttpUser):
             if response.status_code == 200:
                 response.success()
             else:
-                response.failure(f"Health check failed with status {response.status_code}")
+                response.failure(
+                    f"Health check failed with status {response.status_code}"
+                )
 
     @task(2)
     def get_root(self):
@@ -35,7 +37,9 @@ class ToyProjectUser(HttpUser):
             if response.status_code == 200:
                 response.success()
             else:
-                response.failure(f"Root endpoint failed with status {response.status_code}")
+                response.failure(
+                    f"Root endpoint failed with status {response.status_code}"
+                )
 
     @task(2)
     def list_files(self):
@@ -51,30 +55,38 @@ class ToyProjectUser(HttpUser):
                 except json.JSONDecodeError:
                     response.failure("Invalid JSON response")
             else:
-                response.failure(f"List files failed with status {response.status_code}")
+                response.failure(
+                    f"List files failed with status {response.status_code}"
+                )
 
     @task(1)
     def upload_file(self):
         """Simulate file upload."""
         # Generate random file content
-        file_content = ''.join(random.choices(string.ascii_letters + string.digits, k=1024))
+        file_content = "".join(
+            random.choices(string.ascii_letters + string.digits, k=1024)
+        )
         file_name = f"test_file_{random.randint(1000, 9999)}.txt"
 
-        files = {'file': (file_name, file_content, 'text/plain')}
+        files = {"file": (file_name, file_content, "text/plain")}
 
-        with self.client.post("/api/files/upload", files=files, catch_response=True) as response:
+        with self.client.post(
+            "/api/files/upload", files=files, catch_response=True
+        ) as response:
             if response.status_code == 200:
                 try:
                     data = response.json()
-                    if 'id' in data:
-                        self.test_file_ids.append(data['id'])
+                    if "id" in data:
+                        self.test_file_ids.append(data["id"])
                         response.success()
                     else:
                         response.failure("Upload response missing file ID")
                 except json.JSONDecodeError:
                     response.failure("Invalid JSON response from upload")
             else:
-                response.failure(f"File upload failed with status {response.status_code}")
+                response.failure(
+                    f"File upload failed with status {response.status_code}"
+                )
 
     @task(2)
     def get_file_details(self):
@@ -92,7 +104,9 @@ class ToyProjectUser(HttpUser):
                 self.test_file_ids.remove(file_id)
                 response.success()  # Don't count 404 as failure in this case
             else:
-                response.failure(f"Get file details failed with status {response.status_code}")
+                response.failure(
+                    f"Get file details failed with status {response.status_code}"
+                )
 
     @task(1)
     def check_permissions(self):
@@ -101,11 +115,15 @@ class ToyProjectUser(HttpUser):
             return
 
         file_id = random.choice(self.test_file_ids)
-        with self.client.get(f"/api/permissions/{file_id}", catch_response=True) as response:
+        with self.client.get(
+            f"/api/permissions/{file_id}", catch_response=True
+        ) as response:
             if response.status_code in [200, 404]:
                 response.success()
             else:
-                response.failure(f"Check permissions failed with status {response.status_code}")
+                response.failure(
+                    f"Check permissions failed with status {response.status_code}"
+                )
 
     @task(1)
     def update_permissions(self):
@@ -117,18 +135,18 @@ class ToyProjectUser(HttpUser):
         permissions_data = {
             "read": random.choice([True, False]),
             "write": random.choice([True, False]),
-            "delete": random.choice([True, False])
+            "delete": random.choice([True, False]),
         }
 
         with self.client.put(
-            f"/api/permissions/{file_id}",
-            json=permissions_data,
-            catch_response=True
+            f"/api/permissions/{file_id}", json=permissions_data, catch_response=True
         ) as response:
             if response.status_code in [200, 404]:
                 response.success()
             else:
-                response.failure(f"Update permissions failed with status {response.status_code}")
+                response.failure(
+                    f"Update permissions failed with status {response.status_code}"
+                )
 
 
 class AdminUser(HttpUser):
@@ -155,13 +173,15 @@ class AdminUser(HttpUser):
                     files = response.json()
                     # Simulate admin checking each file
                     for file_data in files[:5]:  # Check first 5 files
-                        if 'id' in file_data:
+                        if "id" in file_data:
                             self.client.get(f"/api/files/{file_data['id']}")
                     response.success()
                 except Exception:
                     response.failure("Failed to process files list")
             else:
-                response.failure(f"List files failed with status {response.status_code}")
+                response.failure(
+                    f"List files failed with status {response.status_code}"
+                )
 
 
 class APIStressTest(HttpUser):
@@ -183,8 +203,10 @@ class APIStressTest(HttpUser):
     def upload_large_file(self):
         """Upload larger files for stress testing."""
         # Generate 10KB file
-        file_content = ''.join(random.choices(string.ascii_letters + string.digits, k=10240))
+        file_content = "".join(
+            random.choices(string.ascii_letters + string.digits, k=10240)
+        )
         file_name = f"stress_test_{random.randint(1000, 9999)}.txt"
 
-        files = {'file': (file_name, file_content, 'text/plain')}
+        files = {"file": (file_name, file_content, "text/plain")}
         self.client.post("/api/files/upload", files=files)

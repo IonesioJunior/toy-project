@@ -1,3 +1,5 @@
+import os
+
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -27,7 +29,8 @@ app.add_middleware(
 templates = Jinja2Templates(directory="app/templates")
 
 # Mount static files
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+if os.path.exists("app/static"):
+    app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 
 @app.on_event("startup")
