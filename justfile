@@ -54,33 +54,33 @@ run:
 
 # Build Docker images
 docker-build:
-    docker build --target development -t toy-project:dev .
-    docker build --target production -t toy-project:prod .
+    docker build --target development -t toy-project:dev -f docker/Dockerfile .
+    docker build --target production -t toy-project:prod -f docker/Dockerfile .
 
 # Run development server in Docker
 docker-dev:
-    docker-compose up app-dev
+    docker compose -f docker/docker-compose.yml up app-dev
 
 # Run production server in Docker
 docker-prod:
-    docker-compose -f docker-compose.prod.yml up -d
+    docker compose -f docker/docker-compose.prod.yml up -d
 
 # Run tests in Docker
 docker-test:
-    docker-compose run --rm test
+    docker compose -f docker/docker-compose.yml run --rm test
 
 # Stop all Docker containers
 docker-down:
-    docker-compose down
-    docker-compose -f docker-compose.prod.yml down
+    docker compose -f docker/docker-compose.yml down
+    docker compose -f docker/docker-compose.prod.yml down
 
 # Show Docker logs
 docker-logs service="app-dev":
-    docker-compose logs -f {{service}}
+    docker compose -f docker/docker-compose.yml logs -f {{service}}
 
 # Shell into Docker container
 docker-shell service="app-dev":
-    docker-compose exec {{service}} /bin/bash
+    docker compose -f docker/docker-compose.yml exec {{service}} /bin/bash
 
 # Full development setup
 setup:

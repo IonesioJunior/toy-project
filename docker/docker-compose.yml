@@ -3,12 +3,13 @@ version: '3.8'
 services:
   app-dev:
     build:
-      context: .
+      context: ..
+      dockerfile: docker/Dockerfile
       target: development
     ports:
       - "8001:8000"
     volumes:
-      - .:/app
+      - ..:/app
       - /app/__pycache__
       - /app/.pytest_cache
       - /app/.venv
@@ -18,7 +19,8 @@ services:
 
   app-prod:
     build:
-      context: .
+      context: ..
+      dockerfile: docker/Dockerfile
       target: production
     ports:
       - "8080:8000"
@@ -28,10 +30,11 @@ services:
 
   test:
     build:
-      context: .
+      context: ..
+      dockerfile: docker/Dockerfile
       target: development
     volumes:
-      - .:/app
+      - ..:/app
       - /app/__pycache__
       - /app/.pytest_cache
     environment:

@@ -224,12 +224,24 @@ jobs:
 
   docker-test:
     name: Docker Tests
-    needs: build-docker
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build test image
+        run: |
+          docker build --target development -t toy-project:test -f docker/Dockerfile .
+
       - name: Run tests in Docker
         run: |
-          docker-compose -f docker/docker-compose.yml run --rm test
+          docker run --rm \
+            -e APP_ENV=testing \
+            -e PYTHONUNBUFFERED=1 \
+            -v ${{ github.workspace }}:/app \
+            -w /app \
+            toy-project:test \
+            pytest -v
