@@ -45,47 +45,52 @@ services:
     working_dir: /app/projects/file-manager-api
     command: pytest -v
 
-  # Project Two Services (Commented out - uncomment when ready to use)
-  # project-two-dev:
-  #   build:
-  #     context: ../../projects/project-two
-  #     dockerfile: docker/Dockerfile
-  #     target: development
-  #   ports:
-  #     - "8002:8000"
-  #   volumes:
-  #     - ../../projects/project-two:/app
-  #     - /app/__pycache__
-  #     - /app/.pytest_cache
-  #     - /app/.venv
-  #   environment:
-  #     - PYTHONUNBUFFERED=1
-  #     - APP_ENV=development
+  # Bot Knowledge Services
+  bot-knowledge-dev:
+    build:
+      context: ../../projects/bot-knowledge
+      dockerfile: Dockerfile
+      target: development
+    ports:
+      - "8002:8000"
+    volumes:
+      - ../../projects/bot-knowledge:/app
+      - /app/__pycache__
+      - /app/.pytest_cache
+      - /app/.venv
+      - ../../projects/bot-knowledge/chroma_db:/app/chroma_db
+    environment:
+      - PYTHONUNBUFFERED=1
+      - APP_ENV=development
+      - CHROMA_PERSIST_DIRECTORY=/app/chroma_db
+      - DEBUG_MODE=true
+      - RELOAD=true
 
-  # project-two-prod:
-  #   build:
-  #     context: ../../projects/project-two
-  #     dockerfile: docker/Dockerfile.prod
-  #     target: production
-  #   ports:
-  #     - "8081:8000"
-  #   environment:
-  #     - PYTHONUNBUFFERED=1
-  #   restart: unless-stopped
+  bot-knowledge-prod:
+    build:
+      context: ../../projects/bot-knowledge
+      dockerfile: Dockerfile.prod
+      target: production
+    ports:
+      - "8081:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - CHROMA_PERSIST_DIRECTORY=/app/chroma_db
+    restart: unless-stopped
 
-  # project-two-test:
-  #   build:
-  #     context: ../../projects/project-two
-  #     dockerfile: docker/Dockerfile
-  #     target: development
-  #   volumes:
-  #     - ../../projects/project-two:/app
-  #     - /app/__pycache__
-  #     - /app/.pytest_cache
-  #   environment:
-  #     - PYTHONUNBUFFERED=1
-  #     - APP_ENV=testing
-  #   command: pytest -v
+  bot-knowledge-test:
+    build:
+      context: ../../projects/bot-knowledge
+      dockerfile: Dockerfile
+      target: development
+    volumes:
+      - ../../projects/bot-knowledge:/app
+      - /app/__pycache__
+      - /app/.pytest_cache
+    environment:
+      - PYTHONUNBUFFERED=1
+      - APP_ENV=testing
+    command: pytest -v
 
   # Project Three Services (Commented out - uncomment when ready to use)
   # project-three-dev:

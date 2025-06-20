@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  fastapi-chromadb:
+    build:
+      context: ../../projects/bot-knowledge
+      dockerfile: Dockerfile
+    container_name: fastapi-chromadb-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../../projects/bot-knowledge/src:/app/src
+      - ../../projects/bot-knowledge/chroma_db:/app/chroma_db
+    environment:
+      - CHROMA_PERSIST_DIRECTORY=/app/chroma_db
+      - DEBUG_MODE=true
+      - RELOAD=true
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

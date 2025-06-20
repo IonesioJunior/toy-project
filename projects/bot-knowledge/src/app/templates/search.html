@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+
+{% block title %}Search - ChromaDB Document Manager{% endblock %}
+
+{% block content %}
+<!-- Search Header - Minimalist Design -->
+<div style="margin-bottom: var(--space-8);">
+    <h1 style="font-size: var(--text-4xl); font-weight: var(--font-bold); color: var(--color-gray-900); margin-bottom: var(--space-2); margin-top: 0;">Document Search</h1>
+    <p style="color: var(--color-gray-600); font-size: var(--text-base); margin: 0; line-height: 1.5;">Find documents using semantic search or keyword matching</p>
+</div>
+
+<!-- Main Search Interface - Enhanced Minimalist Design -->
+<div class="search-grid">
+    <!-- Search Main Area -->
+    <div class="search-main">
+        <!-- Search Input -->
+        <div class="card" style="margin-bottom: var(--space-6);">
+            <div style="display: flex; flex-direction: column; gap: var(--space-4);">
+                <div style="position: relative;">
+                    <div style="position: absolute; top: 0; left: 0; height: 100%; padding-left: var(--space-3); display: flex; align-items: center; pointer-events: none;">
+                        <i data-feather="search" style="width: var(--space-6); height: var(--space-6); color: var(--color-gray-400);"></i>
+                    </div>
+                    <input type="text" id="search-query" 
+                           style="display: block; width: 100%; padding: var(--space-4) var(--space-4) var(--space-4) var(--space-12); font-size: var(--text-lg); border: 1px solid var(--color-gray-300); border-radius: var(--radius-lg); background: var(--color-white); color: var(--color-gray-900); line-height: 1.5; transition: all var(--transition-normal);"
+                           placeholder="Enter your search query..." 
+                           autocomplete="off"
+                           onfocus="this.style.borderColor='var(--color-blue-500)'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.1)'"
+                           onblur="this.style.borderColor='var(--color-gray-300)'; this.style.boxShadow='none'" />
+                </div>
+                
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: var(--space-4);">
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="radio" name="search-type" value="semantic" checked 
+                                   style="accent-color: var(--color-blue-600); margin-right: var(--space-2);">
+                            <span style="font-size: var(--text-sm); color: var(--color-gray-700);">Semantic Search</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="radio" name="search-type" value="keyword" 
+                                   style="accent-color: var(--color-blue-600); margin-right: var(--space-2);">
+                            <span style="font-size: var(--text-sm); color: var(--color-gray-700);">Keyword Search</span>
+                        </label>
+                    </div>
+                    
+                    <button id="search-btn" class="btn btn-primary">
+                        <i data-feather="search" style="width: var(--space-2); height: var(--space-2); margin-right: var(--space-1);"></i>
+                        Search
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Search Results -->
+        <div id="search-results-container">
+            <!-- Welcome State - Minimalist Design -->
+            <div id="welcome-state" style="text-align: center; padding: var(--space-12) 0;">
+                <div style="width: var(--space-12); height: var(--space-12); background: rgba(59, 130, 246, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-6);">
+                    <i data-feather="search" style="width: var(--space-8); height: var(--space-8); color: var(--color-blue-600);"></i>
+                </div>
+                <h3 style="font-size: var(--text-xl); font-weight: var(--font-semibold); color: var(--color-gray-900); margin-bottom: var(--space-2); margin-top: 0;">Search Your Documents</h3>
+                <p style="color: var(--color-gray-600); margin-bottom: var(--space-6); max-width: 448px; margin-left: auto; margin-right: auto; font-size: var(--text-base); line-height: 1.5;">
+                    Enter a query above to find relevant documents using AI-powered semantic search or traditional keyword matching.
+                </p>
+                <div id="example-queries" style="display: grid; grid-template-columns: 1fr; gap: var(--space-3); max-width: 672px; margin: 0 auto;">
+                    <button onclick="window.searchManager && window.searchManager.setQuery('machine learning')" 
+                            style="padding: var(--space-3); text-align: left; border: 1px solid var(--color-gray-200); border-radius: var(--radius-lg); background: var(--color-white); transition: all var(--transition-normal); cursor: pointer;"
+                            onmouseover="this.style.background='var(--color-gray-50)'; this.style.borderColor='var(--color-gray-300)'"
+                            onmouseout="this.style.background='var(--color-white)'; this.style.borderColor='var(--color-gray-200)'">
+                        <div style="font-size: var(--text-sm); font-weight: var(--font-medium); color: var(--color-gray-900);">machine learning</div>
+                        <div style="font-size: var(--text-xs); color: var(--color-gray-500);">AI and ML concepts</div>
+                    </button>
+                    <button onclick="window.searchManager && window.searchManager.setQuery('neural networks')" 
+                            style="padding: var(--space-3); text-align: left; border: 1px solid var(--color-gray-200); border-radius: var(--radius-lg); background: var(--color-white); transition: all var(--transition-normal); cursor: pointer;"
+                            onmouseover="this.style.background='var(--color-gray-50)'; this.style.borderColor='var(--color-gray-300)'"
+                            onmouseout="this.style.background='var(--color-white)'; this.style.borderColor='var(--color-gray-200)'">
+                        <div style="font-size: var(--text-sm); font-weight: var(--font-medium); color: var(--color-gray-900);">neural networks</div>
+                        <div style="font-size: var(--text-xs); color: var(--color-gray-500);">Deep learning</div>
+                    </button>
+                    <button onclick="window.searchManager && window.searchManager.setQuery('data analysis')" 
+                            style="padding: var(--space-3); text-align: left; border: 1px solid var(--color-gray-200); border-radius: var(--radius-lg); background: var(--color-white); transition: all var(--transition-normal); cursor: pointer;"
+                            onmouseover="this.style.background='var(--color-gray-50)'; this.style.borderColor='var(--color-gray-300)'"
+                            onmouseout="this.style.background='var(--color-white)'; this.style.borderColor='var(--color-gray-200)'">
+                        <div style="font-size: var(--text-sm); font-weight: var(--font-medium); color: var(--color-gray-900);">data analysis</div>
+                        <div style="font-size: var(--text-xs); color: var(--color-gray-500);">Statistics and insights</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Example Queries Responsive CSS -->
+            <style>
+            @media (min-width: 640px) {
+                #example-queries {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+            }
+
+            @media (min-width: 1024px) {
+                #example-queries {
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: var(--space-4);
+                }
+            }
+            </style>
+            
+            <!-- Loading State -->
+            <div id="search-loading" style="text-align: center; padding: var(--space-12) 0;" class="hidden">
+                <div class="spinner" style="margin: 0 auto var(--space-4);"></div>
+                <p style="color: var(--color-gray-500); font-size: var(--text-sm); margin: 0;">Searching documents...</p>
+            </div>
+            
+            <!-- Search Results -->
+            <div id="search-results" style="display: flex; flex-direction: column; gap: var(--space-4);" class="hidden">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-4);">
+                    <div style="display: flex; align-items: center; gap: var(--space-4);">
+                        <h2 style="font-size: var(--text-lg); font-weight: var(--font-semibold); color: var(--color-gray-900); margin: 0;">Search Results</h2>
+                        <span id="results-count" style="font-size: var(--text-sm); color: var(--color-gray-500);"></span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: var(--space-2);">
+                        <button id="export-results" class="btn btn-secondary btn-sm">
+                            <i data-feather="download" style="width: var(--space-2); height: var(--space-2); margin-right: var(--space-1);"></i>
+                            Export
+                        </button>
+                        <button id="clear-results" class="btn btn-secondary btn-sm">
+                            <i data-feather="x" style="width: var(--space-2); height: var(--space-2); margin-right: var(--space-1);"></i>
+                            Clear
+                        </button>
+                    </div>
+                </div>
+                <div id="results-list"></div>
+            </div>
+            
+            <!-- No Results State -->
+            <div id="no-results" style="text-align: center; padding: var(--space-12) 0;" class="hidden">
+                <div style="width: var(--space-8); height: var(--space-8); background: var(--color-gray-100); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-4);">
+                    <i data-feather="file-minus" style="width: var(--space-4); height: var(--space-4); color: var(--color-gray-400);"></i>
+                </div>
+                <h3 style="font-size: var(--text-lg); font-weight: var(--font-medium); color: var(--color-gray-900); margin-bottom: var(--space-2); margin-top: 0;">No Results Found</h3>
+                <p style="color: var(--color-gray-500); margin-bottom: var(--space-4); font-size: var(--text-sm); line-height: 1.5;">Try adjusting your search terms or using different keywords.</p>
+                <button onclick="window.searchManager && window.searchManager.clearSearch()" class="btn btn-secondary">
+                    <i data-feather="refresh-cw" style="width: var(--space-2); height: var(--space-2); margin-right: var(--space-1);"></i>
+                    Start New Search
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Search Sidebar -->
+    <div class="search-sidebar">
+        <!-- Search Configuration -->
+        <div class="card" style="margin-bottom: var(--space-6);">
+            <div class="card-header">
+                <h3 class="card-title">Search Settings</h3>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: var(--space-4);">
+                <div>
+                    <label class="form-label">Number of Results</label>
+                    <input type="range" id="results-count-slider" 
+                           min="1" max="50" value="10" step="1"
+                           style="width: 100%; height: var(--space-1); background: var(--color-gray-200); border-radius: var(--radius-lg); appearance: none; cursor: pointer; accent-color: var(--color-blue-600);">
+                    <div style="display: flex; justify-content: space-between; font-size: var(--text-xs); color: var(--color-gray-500); margin-top: var(--space-1);">
+                        <span>1</span>
+                        <span id="slider-value" style="font-weight: var(--font-medium); color: var(--color-blue-600);">10</span>
+                        <span>50</span>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="form-label">Filter by Category</label>
+                    <select id="search-category-filter" class="form-select">
+                        <option value="">All Categories</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="form-label">Filter by Author</label>
+                    <select id="search-author-filter" class="form-select">
+                        <option value="">All Authors</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Search History -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Recent Searches</h3>
+                <button id="clear-history" style="font-size: var(--text-sm); color: var(--color-gray-500); transition: color var(--transition-normal); border: none; background: none; cursor: pointer;"
+                        onmouseover="this.style.color='var(--color-gray-700)'"
+                        onmouseout="this.style.color='var(--color-gray-500)'">Clear</button>
+            </div>
+            <div id="search-history" style="display: flex; flex-direction: column; gap: var(--space-2);">
+                <div style="font-size: var(--text-sm); color: var(--color-gray-500); text-align: center; padding: var(--space-4) 0;">No recent searches</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Document Preview Modal - Minimalist Design -->
+<div id="document-preview-modal" style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 50;" class="hidden">
+    <div style="background: var(--color-white); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); width: 100%; max-width: 1024px; margin: 0 var(--space-4); max-height: 90vh; overflow: hidden;">
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: var(--space-6); border-bottom: 1px solid var(--color-gray-200);">
+            <h2 style="font-size: var(--text-xl); font-weight: var(--font-semibold); color: var(--color-gray-900); margin: 0;" id="preview-title">Document Preview</h2>
+            <button id="close-preview" style="color: var(--color-gray-400); transition: color var(--transition-normal); border: none; background: none; cursor: pointer; padding: var(--space-1); border-radius: var(--radius-sm);"
+                    onmouseover="this.style.color='var(--color-gray-600)'"
+                    onmouseout="this.style.color='var(--color-gray-400)'">
+                <i data-feather="x" style="width: var(--space-6); height: var(--space-6);"></i>
+            </button>
+        </div>
+        <div style="padding: var(--space-6); overflow-y: auto; max-height: 70vh;" id="preview-content">
+            <!-- Content will be loaded dynamically -->
+        </div>
+        <div style="display: flex; align-items: center; justify-content: flex-end; gap: var(--space-3); padding: var(--space-6); border-top: 1px solid var(--color-gray-200);">
+            <button id="open-document" class="btn btn-primary">
+                <i data-feather="external-link" style="width: var(--space-2); height: var(--space-2); margin-right: var(--space-1);"></i>
+                Open Document
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="/static/js/search.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize the search page
+    SearchManager.init();
+});
+</script>
+{% endblock %}
