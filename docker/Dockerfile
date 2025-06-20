@@ -35,6 +35,9 @@ RUN useradd -m -u 1000 appuser
 # Copy project files and set ownership
 COPY --chown=appuser:appuser . .
 
+# Ensure the /app directory itself is owned by appuser
+RUN chown appuser:appuser /app
+
 # Create virtual environment and install all dependencies
 RUN mkdir -p /app/.venv && chown -R appuser:appuser /app/.venv
 USER appuser
