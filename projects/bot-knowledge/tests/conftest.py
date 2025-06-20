@@ -1,14 +1,29 @@
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, Mock
 import tempfile
 import shutil
 from pathlib import Path
-
-from src.app.main import app
-from src.app.services.vector_service import VectorService
-from src.app.models.document import DocumentCreate, DocumentResponse
+import os
 from datetime import datetime
+
+# Set test environment before any imports
+os.environ['APP_ENV'] = 'testing'
+os.environ['CHROMA_TELEMETRY_DISABLED'] = '1'
+
+# Mock ChromaDB before importing app modules
+with patch('chromadb.Client') as mock_client_class, \
+     patch('chromadb.PersistentClient') as mock_persistent_client_class:
+    mock_client = Mock()
+    mock_collection = Mock()
+    mock_collection.count.return_value = 1  # Prevent warmup
+    mock_client.get_or_create_collection.return_value = mock_collection
+    mock_client_class.return_value = mock_client
+    mock_persistent_client_class.return_value = mock_client
+    
+    from src.app.main import app
+    from src.app.services.vector_service import VectorService
+    from src.app.models.document import DocumentCreate, DocumentResponse
 
 
 @pytest.fixture

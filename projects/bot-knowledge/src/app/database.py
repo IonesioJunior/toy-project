@@ -2,6 +2,7 @@ import chromadb
 from chromadb.config import Settings as ChromaSettings
 from typing import Optional
 import logging
+import os
 from .config import settings
 
 logger = logging.getLogger(__name__)
@@ -18,13 +19,17 @@ class ChromaDBClient:
         return cls._instance
     
     def __init__(self):
-        if self._client is None:
-            self._initialize_client()
+        # Don't initialize client at construction time
+        # This prevents issues during test imports
+        pass
     
     def _initialize_client(self):
         """Initialize ChromaDB persistent client"""
         try:
             logger.info(f"Initializing ChromaDB client with persist directory: {settings.chroma_persist_directory}")
+            
+            # Check if we're in test environment
+            is_testing = os.environ.get('APP_ENV') == 'testing'
             
             chroma_settings = ChromaSettings(
                 anonymized_telemetry=False,
@@ -32,10 +37,15 @@ class ChromaDBClient:
                 is_persistent=True
             )
             
-            self._client = chromadb.PersistentClient(
-                path=settings.chroma_persist_directory,
-                settings=chroma_settings
-            )
+            if is_testing:
+                # Use in-memory client for tests to avoid file system issues
+                logger.info("Using in-memory ChromaDB client for testing")
+                self._client = chromadb.Client(settings=chroma_settings)
+            else:
+                self._client = chromadb.PersistentClient(
+                    path=settings.chroma_persist_directory,
+                    settings=chroma_settings
+                )
             
             logger.info("ChromaDB client initialized successfully")
             
@@ -44,7 +54,7 @@ class ChromaDBClient:
             raise
     
     @property
-    def client(self) -> chromadb.PersistentClient:
+    def client(self):
         """Get the ChromaDB client instance"""
         if self._client is None:
             self._initialize_client()
@@ -69,5 +79,15 @@ class ChromaDBClient:
             return {"status": "unhealthy", "error": str(e)}
 
 
-# Global instance
-chroma_client = ChromaDBClient()
+# Global instance - lazy initialization
+_chroma_client = None
+
+def get_chroma_client():
+    """Get the global ChromaDB client instance"""
+    global _chroma_client
+    if _chroma_client is None:
+        _chroma_client = ChromaDBClient()
+    return _chroma_client
+
+# For backward compatibility
+chroma_client = get_chroma_client()

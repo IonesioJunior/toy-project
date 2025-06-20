@@ -4,6 +4,7 @@ from typing import List, Optional, Dict, Any, Tuple
 import logging
 from datetime import datetime
 import uuid
+import os
 
 from ..database import chroma_client
 from ..config import settings
@@ -49,6 +50,11 @@ class VectorService:
     
     def _warmup_embedding_model(self):
         """Warm up the embedding model to avoid timeouts on first use"""
+        # Skip warmup in test environment
+        if os.environ.get('APP_ENV') == 'testing':
+            logger.info("Skipping embedding model warmup in test environment")
+            return
+            
         try:
             # Check if collection has any documents
             count = self._collection.count()
