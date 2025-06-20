@@ -7,7 +7,6 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
 
 permissions:
   contents: write
@@ -29,6 +28,11 @@ jobs:
         id: get_version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
 
+      - name: Convert repository name to lowercase
+        id: repo
+        run: |
+          echo "repository=${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
+
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -40,7 +44,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ steps.repo.outputs.repository }}
           tags: |
             type=ref,event=tag
             type=semver,pattern={{version}}
@@ -116,7 +120,7 @@ jobs:
             ## Docker Image
             
             ```bash
-            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.get_version.outputs.VERSION }}
+            docker pull ${{ env.REGISTRY }}/${{ steps.repo.outputs.repository }}:${{ steps.get_version.outputs.VERSION }}
             ```
             
             ## What's Changed
