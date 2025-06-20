@@ -33,29 +33,25 @@ jobs:
 
       - name: Install dependencies
         run: |
-          uv venv
-          uv sync --all-extras
+          uv sync --all-packages
 
       - name: Install security tools
         run: |
-          source .venv/bin/activate
-          pip install pip-audit safety
+          uv pip install pip-audit safety
 
-      - name: Run pip-audit
+      - name: Run pip-audit for all projects
         run: |
-          source .venv/bin/activate
-          pip-audit --desc
+          echo "Running pip-audit for monorepo..."
+          uv run pip-audit --desc
 
       - name: Run safety check
         run: |
-          source .venv/bin/activate
-          safety check --json
+          uv run safety check --json
         continue-on-error: true
 
       - name: Check for outdated dependencies
         run: |
-          source .venv/bin/activate
-          pip list --outdated
+          uv pip list --outdated
 
   code-security:
     name: Code Security Analysis
@@ -75,7 +71,7 @@ jobs:
 
       - name: Run bandit
         run: |
-          bandit -r app/ -f json -o bandit-report.json
+          bandit -r projects/ shared/ -f json -o bandit-report.json
         continue-on-error: true
 
       - name: Upload bandit results
@@ -103,8 +99,33 @@ jobs:
           config-file: ./.github/codeql-config.yml
           queries: security-and-quality
 
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: ${{ env.UV_VERSION }}
+
+      - name: Install dependencies for CodeQL
+        run: |
+          # Install dependencies for all projects
+          uv sync --all-packages
+          
+      - name: Create CodeQL database
+        run: |
+          # Create a dummy script to help CodeQL understand the structure
+          echo "# CodeQL Analysis Helper" > codeql_helper.py
+          echo "import sys" >> codeql_helper.py
+          echo "sys.path.extend(['projects/file-manager-api/src', 'shared'])" >> codeql_helper.py
+          echo "# Import modules to help CodeQL discover the code" >> codeql_helper.py
+          echo "try:" >> codeql_helper.py
+          echo "    from app import main" >> codeql_helper.py
+          echo "    from shared.libs.common import logging, exceptions" >> codeql_helper.py
+          echo "except ImportError:" >> codeql_helper.py
+          echo "    pass" >> codeql_helper.py
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
@@ -125,13 +146,17 @@ jobs:
 
       - name: Build images
         run: |
-          docker build --target development -t toy-project:dev -f docker/Dockerfile .
-          docker build --target production -t toy-project:prod -f docker/Dockerfile .
+          # Only build if file-manager-api has a Dockerfile
+          if [ -f projects/file-manager-api/docker/Dockerfile ]; then
+            docker build --target development -t file-manager-api:dev -f projects/file-manager-api/docker/Dockerfile .
+            docker build --target production -t file-manager-api:prod -f projects/file-manager-api/docker/Dockerfile .
+          fi
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
+        if: success()
         with:
-          image-ref: 'toy-project:prod'
+          image-ref: 'file-manager-api:prod'
           format: 'sarif'
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'

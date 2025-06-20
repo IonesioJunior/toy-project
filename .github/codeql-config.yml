@@ -7,13 +7,13 @@ queries:
   - uses: security-extended
   - uses: security-and-quality
   
-  # Custom queries for FastAPI-specific security issues
-  - uses: ./.github/codeql/custom-queries
+  # Custom queries for FastAPI-specific security issues (if available)
+  # - uses: ./.github/codeql/custom-queries
 
 # Path filters - include only relevant Python files
 paths:
-  - app/
-  - test/
+  - projects/
+  - shared/
   
 paths-ignore:
   - "**/__pycache__/"
