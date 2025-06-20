@@ -1,0 +1,38 @@
+name: fastapi-security-queries
+version: 1.0.0
+description: Custom CodeQL queries for FastAPI application security
+author: FastAPI Security Team
+license: MIT
+
+# Dependencies on standard CodeQL libraries
+dependencies:
+  codeql/python-all: ^0.9.0
+
+# Query suites
+suiteDefinitions:
+  - name: fastapi-security-suite
+    description: Complete security analysis for FastAPI applications
+    queries:
+      - fastapi-missing-auth.ql
+      - fastapi-sql-injection.ql
+      - fastapi-path-traversal.ql
+      - fastapi-sensitive-data-exposure.ql
+      - fastapi-input-validation.ql
+
+# Default query suite
+defaultSuite: fastapi-security-suite
+
+# Library path configuration
+libraryPathDependencies:
+  - codeql/python-all
+
+# Extractor configuration
+extractor: python
+
+# Query metadata
+queryMetadata:
+  tags:
+    - security
+    - fastapi
+    - api-security
+    - web-security

@@ -1,0 +1,307 @@
+name: Code Quality
+
+on:
+  pull_request:
+    branches: [ main, master, develop ]
+    types: [ opened, synchronize, reopened ]
+
+env:
+  PYTHON_VERSION: '3.13'
+  UV_VERSION: '0.4.0'
+
+jobs:
+  # SonarCloud Analysis (optional - skipped if no token)
+  sonarcloud:
+    name: SonarCloud Analysis
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.head.repo.full_name == github.repository && secrets.SONAR_TOKEN != ''
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for better relevancy
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: ${{ env.UV_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          uv sync --all-extras
+          uv pip install coverage
+
+      - name: Run tests with coverage
+        run: |
+          uv run pytest --cov=app --cov-report=xml --cov-report=term
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=${{ github.repository_owner }}_${{ github.event.repository.name }}
+            -Dsonar.organization=${{ github.repository_owner }}
+            -Dsonar.python.coverage.reportPaths=coverage.xml
+            -Dsonar.sources=app
+            -Dsonar.tests=test
+
+  # Coverage Report
+  coverage:
+    name: Test Coverage Report
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: ${{ env.UV_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          uv sync --all-extras
+          uv pip install coverage-badge
+
+      - name: Run tests with coverage
+        run: |
+          uv run pytest --cov=app --cov-report=xml --cov-report=term --cov-report=html
+
+      - name: Generate coverage badge
+        run: |
+          coverage-badge -o coverage.svg -f
+
+      - name: Coverage report summary
+        id: coverage
+        run: |
+          # Extract coverage percentage
+          COVERAGE=$(python -c "import xml.etree.ElementTree as ET; tree = ET.parse('coverage.xml'); root = tree.getroot(); print(round(float(root.attrib['line-rate']) * 100, 2))")
+          echo "percentage=$COVERAGE" >> $GITHUB_OUTPUT
+          
+          # Create detailed report
+          echo "## Coverage Report" > coverage-report.md
+          echo "" >> coverage-report.md
+          echo "**Total Coverage: ${COVERAGE}%**" >> coverage-report.md
+          echo "" >> coverage-report.md
+          
+          if (( $(echo "$COVERAGE < 80" | bc -l) )); then
+            echo "❌ Coverage is below 80% threshold!" >> coverage-report.md
+            echo "coverage_passed=false" >> $GITHUB_OUTPUT
+          else
+            echo "✅ Coverage meets the 80% threshold!" >> coverage-report.md
+            echo "coverage_passed=true" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "" >> coverage-report.md
+          echo "<details>" >> coverage-report.md
+          echo "<summary>Detailed Coverage Report</summary>" >> coverage-report.md
+          echo "" >> coverage-report.md
+          echo '```' >> coverage-report.md
+          uv run coverage report >> coverage-report.md
+          echo '```' >> coverage-report.md
+          echo "</details>" >> coverage-report.md
+
+      - name: Comment PR with coverage
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: coverage-report
+          path: coverage-report.md
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: |
+            coverage.xml
+            htmlcov/
+            coverage.svg
+
+      - name: Fail if coverage below threshold
+        if: steps.coverage.outputs.coverage_passed == 'false'
+        run: |
+          echo "Coverage is below 80% threshold!"
+          exit 1
+
+  # Performance Testing
+  performance:
+    name: Performance Testing
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: ${{ env.UV_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          uv sync --all-extras
+          uv pip install locust
+
+      - name: Start application
+        run: |
+          # Start the FastAPI application in the background
+          uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+          echo $! > app.pid
+          
+          # Wait for the app to be ready
+          echo "Waiting for application to start..."
+          for i in {1..30}; do
+            if curl -f http://localhost:8000/health 2>/dev/null; then
+              echo "Application is ready!"
+              break
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 1
+          done
+          
+          if ! curl -f http://localhost:8000/health 2>/dev/null; then
+            echo "Application failed to start!"
+            exit 1
+          fi
+
+      - name: Run performance tests
+        run: |
+          # Run Locust tests
+          uv run locust -f test/performance/locustfile.py \
+            --headless \
+            --users 10 \
+            --spawn-rate 2 \
+            --run-time 30s \
+            --host http://localhost:8000 \
+            --html performance-report.html \
+            --csv performance-results
+
+      - name: Analyze performance results
+        id: perf-analysis
+        run: |
+          # Parse and analyze performance results
+          python3 << 'EOF'
+          import csv
+          import json
+          
+          # Read the stats file
+          with open('performance-results_stats.csv', 'r') as f:
+              reader = csv.DictReader(f)
+              stats = list(reader)
+          
+          # Create performance report
+          report = []
+          report.append("## Performance Test Results")
+          report.append("")
+          report.append("| Endpoint | Avg Response Time (ms) | 95%ile (ms) | Requests/sec | Failures |")
+          report.append("|----------|------------------------|-------------|--------------|----------|")
+          
+          total_failures = 0
+          for row in stats:
+              if row['Type'] != 'Aggregated':
+                  avg_time = float(row['Average Response Time'])
+                  p95_time = float(row['95%'])
+                  rps = float(row['Requests/s'])
+                  failures = int(row['Failure Count'])
+                  total_failures += failures
+                  
+                  # Add warning emoji if response time is high
+                  warning = " ⚠️" if avg_time > 500 else ""
+                  report.append(f"| {row['Name']} | {avg_time:.0f}{warning} | {p95_time:.0f} | {rps:.1f} | {failures} |")
+          
+          report.append("")
+          
+          # Check thresholds
+          passed = True
+          for row in stats:
+              if row['Type'] != 'Aggregated':
+                  if float(row['Average Response Time']) > 1000:  # 1 second threshold
+                      report.append(f"❌ {row['Name']} average response time exceeds 1000ms")
+                      passed = False
+                  if float(row['95%']) > 2000:  # 2 seconds for 95th percentile
+                      report.append(f"❌ {row['Name']} 95th percentile exceeds 2000ms")
+                      passed = False
+          
+          if total_failures > 0:
+              report.append(f"❌ Total failures: {total_failures}")
+              passed = False
+          
+          if passed:
+              report.append("✅ All performance thresholds passed!")
+          
+          # Write report
+          with open('performance-report.md', 'w') as f:
+              f.write('\n'.join(report))
+          
+          # Set output
+          print(f"performance_passed={'true' if passed else 'false'}")
+          EOF
+          
+          # Extract the result
+          PERF_PASSED=$(python3 -c "
+          import csv
+          passed = True
+          with open('performance-results_stats.csv', 'r') as f:
+              reader = csv.DictReader(f)
+              for row in reader:
+                  if row['Type'] != 'Aggregated':
+                      if float(row['Average Response Time']) > 1000 or float(row['95%']) > 2000 or int(row['Failure Count']) > 0:
+                          passed = False
+                          break
+          print('true' if passed else 'false')
+          ")
+          echo "performance_passed=$PERF_PASSED" >> $GITHUB_OUTPUT
+
+      - name: Comment PR with performance results
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: performance-report
+          path: performance-report.md
+
+      - name: Upload performance artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-reports
+          path: |
+            performance-report.html
+            performance-results*.csv
+
+      - name: Stop application
+        if: always()
+        run: |
+          if [ -f app.pid ]; then
+            kill $(cat app.pid) || true
+            rm app.pid
+          fi
+
+      - name: Fail if performance thresholds not met
+        if: steps.perf-analysis.outputs.performance_passed == 'false'
+        run: |
+          echo "Performance thresholds not met!"
+          exit 1

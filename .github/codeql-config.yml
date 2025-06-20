@@ -1,0 +1,236 @@
+# CodeQL configuration for FastAPI application security analysis
+name: "FastAPI Security Configuration"
+
+# Language configuration
+languages:
+  - python
+
+# Query filters and custom queries
+queries:
+  # Use default Python security queries
+  - uses: security-extended
+  - uses: security-and-quality
+  
+  # Custom queries for FastAPI-specific security issues
+  - uses: ./.github/codeql/custom-queries
+
+# Path filters - include only relevant Python files
+paths:
+  - app/
+  - test/
+  
+paths-ignore:
+  - "**/__pycache__/"
+  - "**/.pytest_cache/"
+  - "**/venv/"
+  - "**/env/"
+  - "**/.venv/"
+  - "**/site-packages/"
+  - "**/dist/"
+  - "**/build/"
+  - "**/*.pyc"
+  - "**/*.pyo"
+  - "**/*.egg-info/"
+  - "**/migrations/"
+
+# Query suite configuration for specific security focus areas
+query-filters:
+  # SQL Injection Prevention
+  - id: sql-injection
+    severity: error
+    tags:
+      - security
+      - external/cwe/cwe-089
+      - sql-injection
+    include:
+      - "py/sql-injection"
+      - "py/sql-construction"
+      - "py/hardcoded-sql-query"
+      
+  # Path Traversal Detection
+  - id: path-traversal
+    severity: error
+    tags:
+      - security
+      - external/cwe/cwe-022
+      - path-traversal
+    include:
+      - "py/path-injection"
+      - "py/unsafe-file-access"
+      - "py/tarslip"
+      - "py/zipslip"
+      
+  # Authentication/Authorization Issues
+  - id: auth-issues
+    severity: error
+    tags:
+      - security
+      - authentication
+      - authorization
+    include:
+      - "py/weak-crypto-key"
+      - "py/hardcoded-credentials"
+      - "py/clear-text-storage-sensitive-data"
+      - "py/clear-text-logging-sensitive-data"
+      - "py/jwt-weak-key"
+      - "py/weak-password-hashing"
+      
+  # Input Validation
+  - id: input-validation
+    severity: error
+    tags:
+      - security
+      - input-validation
+      - external/cwe/cwe-020
+    include:
+      - "py/code-injection"
+      - "py/command-injection"
+      - "py/reflective-xss"
+      - "py/unsafe-deserialization"
+      - "py/regex-injection"
+      - "py/template-injection"
+      - "py/ldap-injection"
+      - "py/xml-bomb"
+      - "py/xxe"
+      
+  # Sensitive Data Exposure
+  - id: sensitive-data
+    severity: error
+    tags:
+      - security
+      - sensitive-data
+      - external/cwe/cwe-200
+    include:
+      - "py/clear-text-logging-sensitive-data"
+      - "py/clear-text-storage-sensitive-data"
+      - "py/flask-debug"
+      - "py/insecure-cookie"
+      - "py/missing-cookie-httponly"
+      - "py/stack-trace-exposure"
+      - "py/http-response-splitting"
+
+# FastAPI-specific security patterns
+packs:
+  # Additional security rules for FastAPI
+  fastapi-security:
+    # CORS configuration issues
+    - include:
+        kind: problem
+        precision: high
+        id: py/fastapi-permissive-cors
+        name: "Overly permissive CORS configuration in FastAPI"
+        description: "Detects FastAPI applications with overly permissive CORS settings"
+        tags:
+          - security
+          - fastapi
+          - cors
+          
+    # Missing authentication on endpoints
+    - include:
+        kind: problem
+        precision: medium
+        id: py/fastapi-missing-auth
+        name: "FastAPI endpoint without authentication"
+        description: "Detects FastAPI endpoints that may be missing authentication decorators"
+        tags:
+          - security
+          - fastapi
+          - authentication
+          
+    # Unsafe Pydantic model validation
+    - include:
+        kind: problem
+        precision: high
+        id: py/fastapi-unsafe-validation
+        name: "Unsafe Pydantic model validation"
+        description: "Detects potential security issues in Pydantic model validation"
+        tags:
+          - security
+          - fastapi
+          - validation
+          
+    # Direct database queries without parameterization
+    - include:
+        kind: problem
+        precision: high
+        id: py/fastapi-unsafe-db-query
+        name: "Unsafe database query in FastAPI"
+        description: "Detects database queries that may be vulnerable to SQL injection"
+        tags:
+          - security
+          - fastapi
+          - sql-injection
+          
+    # File upload vulnerabilities
+    - include:
+        kind: problem
+        precision: high
+        id: py/fastapi-unsafe-file-upload
+        name: "Unsafe file upload handling"
+        description: "Detects potential security issues in file upload handling"
+        tags:
+          - security
+          - fastapi
+          - file-upload
+
+# Additional configuration for better analysis
+analysis-properties:
+  # Python-specific settings
+  python:
+    # Include type stubs for better analysis
+    include-type-stubs: true
+    
+    # Analyze dependencies for vulnerabilities
+    analyze-dependencies: true
+    
+    # FastAPI-specific patterns to look for
+    framework-specific:
+      - name: "fastapi"
+        patterns:
+          - "from fastapi import"
+          - "import fastapi"
+          - "FastAPI()"
+          
+    # Security decorators to recognize
+    security-decorators:
+      - "Depends"
+      - "Security"
+      - "HTTPBearer"
+      - "HTTPBasic"
+      - "OAuth2PasswordBearer"
+      - "APIKeyHeader"
+      - "APIKeyQuery"
+      - "APIKeyCookie"
+
+# Severity thresholds
+severity-threshold: medium
+
+# Results configuration
+results:
+  # Group results by security category
+  group-by: 
+    - severity
+    - security-category
+    
+  # Include remediation advice
+  include-remediation: true
+  
+  # Show code snippets in results
+  show-snippets: true
+  
+  # Limit results per query to avoid noise
+  max-results-per-query: 100
+
+# SARIF output configuration
+sarif:
+  # Include rule help text
+  include-rule-help: true
+  
+  # Add security severity scores
+  add-security-severity: true
+  
+  # Include data flow paths
+  include-data-flow: true
+  
+  # Add CWE mappings
+  add-cwe-mappings: true
