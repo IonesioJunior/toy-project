@@ -300,7 +300,7 @@ jobs:
         run: |
           if [ -f "projects/${{ matrix.project }}/docker/Dockerfile" ]; then
             echo "dockerfile=projects/${{ matrix.project }}/docker/Dockerfile" >> $GITHUB_OUTPUT
-            echo "context=./projects/${{ matrix.project }}" >> $GITHUB_OUTPUT
+            echo "context=." >> $GITHUB_OUTPUT
           else
             echo "Project ${{ matrix.project }} doesn't have a Dockerfile, skipping Docker build"
             echo "skip=true" >> $GITHUB_OUTPUT
@@ -357,7 +357,7 @@ jobs:
         id: docker-test
         run: |
           if [ -f "projects/${{ matrix.project }}/docker/Dockerfile" ]; then
-            docker build --no-cache --target development -t ${{ matrix.project }}:test -f projects/${{ matrix.project }}/docker/Dockerfile projects/${{ matrix.project }}
+            docker build --no-cache --target development -t ${{ matrix.project }}:test -f projects/${{ matrix.project }}/docker/Dockerfile .
             echo "skip=false" >> $GITHUB_OUTPUT
           else
             echo "No Dockerfile found for ${{ matrix.project }}, skipping Docker tests"
