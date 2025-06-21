@@ -74,6 +74,9 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 warn_no_return = true
 strict_equality = true
+exclude = [
+    "projects/file-manager-api/tests",
+]
 
 [tool.pytest.ini_options]
 minversion = "8.0"

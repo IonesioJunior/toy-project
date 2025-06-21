@@ -71,7 +71,15 @@ format project="all":
 type-check project="all":
     #!/usr/bin/env bash
     if [ "{{project}}" = "all" ]; then
-        uv run mypy projects/
+        # Run mypy for each project separately to avoid duplicate module issues
+        for proj in projects/*/; do
+            if [ -d "$proj/src" ]; then
+                proj_name=$(basename "$proj")
+                echo "Type checking $proj_name..."
+                cd "$proj" && uv run mypy src/ || exit 1
+                cd ../..
+            fi
+        done
     else
         cd projects/{{project}} && uv run mypy src/
     fi
