@@ -90,20 +90,20 @@ def cleanup_test_storage():
     """Clean up test storage before and after each test."""
     # Import here to ensure it's after environment setup
     from app.config import FILE_STORAGE_PATH, METADATA_PATH
-    
+
     # Get the base storage directory
     test_storage = Path("/tmp/syftbox_mock")
-    
+
     # Clean before test
     if test_storage.exists():
         shutil.rmtree(test_storage, ignore_errors=True)
-    
+
     # Also clean the specific storage paths
     if FILE_STORAGE_PATH.exists():
         shutil.rmtree(FILE_STORAGE_PATH, ignore_errors=True)
     if METADATA_PATH.exists():
         shutil.rmtree(METADATA_PATH, ignore_errors=True)
-    
+
     # Recreate the directories
     FILE_STORAGE_PATH.mkdir(parents=True, exist_ok=True)
     METADATA_PATH.mkdir(parents=True, exist_ok=True)

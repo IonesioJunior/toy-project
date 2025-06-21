@@ -1,8 +1,7 @@
 from pathlib import Path
 from typing import Optional, Protocol, Set, Union
 
-from pydantic import ConfigDict
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from syft_core import Client
 from syft_core.exceptions import SyftBoxException
 
@@ -64,7 +63,7 @@ class Settings(BaseSettings):
     # API configuration
     API_PREFIX: str = "/api"
 
-    model_config = ConfigDict(
+    model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=True,

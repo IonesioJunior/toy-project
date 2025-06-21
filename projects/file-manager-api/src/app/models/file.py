@@ -16,7 +16,7 @@ class FileMetadata(BaseModel):
     upload_date: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     syft_url: str = Field(..., description="SyftBox URL for file access")
 
-    @field_serializer('upload_date')
+    @field_serializer("upload_date")
     def serialize_datetime(self, dt: datetime) -> str:
         return dt.isoformat()
 
@@ -44,7 +44,7 @@ class FileListItem(BaseModel):
         None, description="List of users this file is shared with"
     )
 
-    @field_serializer('upload_date')
+    @field_serializer("upload_date")
     def serialize_datetime(self, dt: datetime) -> str:
         return dt.isoformat()
 

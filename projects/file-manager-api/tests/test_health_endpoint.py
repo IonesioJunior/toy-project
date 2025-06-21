@@ -75,7 +75,8 @@ class TestHealthEndpoint:
         # Test with syft_client set to None
         monkeypatch.setattr("app.main.syft_client", None)
 
-        from app.main import lifespan, app as fastapi_app
+        from app.main import app as fastapi_app
+        from app.main import lifespan
 
         with pytest.raises(RuntimeError) as exc_info:
             import asyncio

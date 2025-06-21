@@ -229,9 +229,9 @@ class TestSyftCoreIntegration:
             }
             response = client.post(f"{settings.API_PREFIX}/files/", files=files)
 
-            assert (
-                response.status_code == 201
-            ), f"Failed for {filename}: {response.json()}"
+            assert response.status_code == 201, (
+                f"Failed for {filename}: {response.json()}"
+            )
             data = response.json()
 
             # Verify syft URL is generated

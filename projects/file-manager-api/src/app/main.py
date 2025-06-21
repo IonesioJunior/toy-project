@@ -1,5 +1,6 @@
 import os
 from contextlib import asynccontextmanager
+from typing import AsyncGenerator
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request
@@ -11,8 +12,9 @@ from fastapi.templating import Jinja2Templates
 from app.config import settings, syft_client
 from app.routes import files, permissions
 
+
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Manage application lifespan."""
     # Startup
     if not syft_client:
@@ -21,9 +23,9 @@ async def lifespan(app: FastAPI):
             "Please run 'syftbox init' before starting the application."
         )
     print(f"SyftBox verified. User: {syft_client.email} (ENV: {settings.APP_ENV})")
-    
+
     yield
-    
+
     # Shutdown (if needed)
     pass
 
