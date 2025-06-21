@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Optional, Protocol, Set, Union
 
+from pydantic import ConfigDict
 from pydantic_settings import BaseSettings
 from syft_core import Client
 from syft_core.exceptions import SyftBoxException
@@ -63,10 +64,11 @@ class Settings(BaseSettings):
     # API configuration
     API_PREFIX: str = "/api"
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = True
+    model_config = ConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=True,
+    )
 
 
 # Mock implementation for dev/test
@@ -91,7 +93,7 @@ class MockSyftClient:
 
     def to_syft_url(self, file_path: Path) -> str:
         """Generate mock syft URL."""
-        return f"syft://{self.email}/apis/file_management/storage/{file_path.name}"
+        return f"syft://{self.email}/app_data/file_management/storage/{file_path.name}"
 
 
 settings = Settings()
