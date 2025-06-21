@@ -13,11 +13,13 @@ services:
       - ../..:/app
       - /app/__pycache__
       - /app/.pytest_cache
-      - /app/projects/file-manager-api/.venv
     environment:
       - PYTHONUNBUFFERED=1
       - APP_ENV=development
+      - PYTHONPATH=/app/projects/file-manager-api/src
     working_dir: /app/projects/file-manager-api
+    user: appuser
+    command: /app/.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
   file-manager-api-prod:
     build:
@@ -42,15 +44,16 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - APP_ENV=testing
+      - PYTHONPATH=/app/projects/file-manager-api/src
     working_dir: /app/projects/file-manager-api
-    command: pytest -v
+    user: appuser
+    command: sh -c ". .venv/bin/activate && pytest -v"
 
   # Bot Knowledge Services
   bot-knowledge-dev:
     build:
       context: ../../projects/bot-knowledge
       dockerfile: Dockerfile
-      target: development
     ports:
       - "8002:8000"
     volumes:
@@ -65,6 +68,8 @@ services:
       - CHROMA_PERSIST_DIRECTORY=/app/chroma_db
       - DEBUG_MODE=true
       - RELOAD=true
+      - FILE_MANAGER_API_URL=http://file-manager-api-dev:8000
+      - ENABLE_FILE_MANAGER=true
 
   bot-knowledge-prod:
     build:
@@ -82,7 +87,6 @@ services:
     build:
       context: ../../projects/bot-knowledge
       dockerfile: Dockerfile
-      target: development
     volumes:
       - ../../projects/bot-knowledge:/app
       - /app/__pycache__
@@ -90,6 +94,8 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - APP_ENV=testing
+      - FILE_MANAGER_API_URL=http://file-manager-api-test:8000
+      - ENABLE_FILE_MANAGER=false
     command: pytest -v
 
   # LLM Chat Services
@@ -112,6 +118,7 @@ services:
       - DEBUG=${DEBUG:-true}
       - MAX_HISTORY_LENGTH=${MAX_HISTORY_LENGTH:-25}
       - SESSION_TIMEOUT_MINUTES=${SESSION_TIMEOUT_MINUTES:-60}
+      - FILE_MANAGER_API_URL=http://file-manager-api-dev:8000
     working_dir: /app
 
   llm-chat-prod:
@@ -128,6 +135,7 @@ services:
       - DEBUG=false
       - MAX_HISTORY_LENGTH=${MAX_HISTORY_LENGTH:-25}
       - SESSION_TIMEOUT_MINUTES=${SESSION_TIMEOUT_MINUTES:-60}
+      - FILE_MANAGER_API_URL=http://file-manager-api-prod:8000
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
