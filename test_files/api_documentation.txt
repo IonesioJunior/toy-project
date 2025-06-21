@@ -1,0 +1,39 @@
+RESTful API Design Documentation
+
+## Introduction
+This document outlines best practices for designing RESTful APIs that are scalable, maintainable, and developer-friendly.
+
+## Core Principles
+
+### 1. Use Nouns for Resources
+- /users (not /getUsers)
+- /products/{id} (not /getProductById)
+- /orders/{orderId}/items (not /getOrderItems)
+
+### 2. HTTP Methods
+- GET: Retrieve resources
+- POST: Create new resources
+- PUT: Update entire resources
+- PATCH: Partial updates
+- DELETE: Remove resources
+
+### 3. Status Codes
+- 200 OK: Success
+- 201 Created: Resource created
+- 400 Bad Request: Client error
+- 404 Not Found: Resource not found
+- 500 Internal Server Error: Server error
+
+### 4. Versioning
+- Include version in URL: /api/v1/users
+- Or use headers: Accept: application/vnd.api+json;version=1
+
+### 5. Pagination
+- Use limit and offset parameters
+- Include total count in response
+- Provide next/previous links
+
+### 6. Authentication
+- Use OAuth 2.0 or JWT tokens
+- Always use HTTPS
+- Implement rate limiting

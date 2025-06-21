@@ -1,0 +1,26 @@
+Docker Best Practices Guide
+
+1. Keep images small
+   - Use multi-stage builds
+   - Only install necessary dependencies
+   - Clean up after installations
+
+2. Security considerations
+   - Don't run as root
+   - Use official base images
+   - Scan for vulnerabilities
+
+3. Layer caching
+   - Order Dockerfile commands properly
+   - Separate dependencies from code
+   - Use .dockerignore
+
+4. Container orchestration
+   - Use Docker Compose for development
+   - Consider Kubernetes for production
+   - Implement health checks
+
+5. Logging and monitoring
+   - Use centralized logging
+   - Implement proper log rotation
+   - Monitor resource usage
