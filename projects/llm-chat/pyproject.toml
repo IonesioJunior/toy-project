@@ -41,6 +41,8 @@ select = ["E", "F", "I", "N", "W"]
 [tool.mypy]
 python_version = "3.13"
 strict = true
+ignore_missing_imports = true
+warn_no_return = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

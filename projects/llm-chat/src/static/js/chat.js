@@ -1,3 +1,171 @@
+// File Selection functionality
+class FileSelector {
+    constructor(chatApp) {
+        this.chatApp = chatApp;
+        this.selectedFiles = new Map(); // Map of file_id -> file_info
+        this.modal = document.getElementById('file-modal');
+        this.fileList = document.getElementById('file-list');
+        this.fileListLoading = document.getElementById('file-list-loading');
+        this.fileListError = document.getElementById('file-list-error');
+        this.selectedFilesDiv = document.getElementById('selected-files');
+        this.selectedFilesList = document.getElementById('selected-files-list');
+        this.attachButton = document.getElementById('attach-button');
+        
+        this.init();
+    }
+    
+    init() {
+        this.attachButton.addEventListener('click', () => this.openModal());
+        
+        // Close modal when clicking outside
+        this.modal.addEventListener('click', (e) => {
+            if (e.target === this.modal) {
+                this.closeModal();
+            }
+        });
+    }
+    
+    async openModal() {
+        this.modal.style.display = 'block';
+        await this.loadFiles();
+    }
+    
+    closeModal() {
+        this.modal.style.display = 'none';
+    }
+    
+    async loadFiles() {
+        this.fileListLoading.style.display = 'block';
+        this.fileList.style.display = 'none';
+        this.fileListError.style.display = 'none';
+        
+        try {
+            const response = await fetch('/api/files/');
+            if (!response.ok) {
+                throw new Error('Failed to load files');
+            }
+            
+            const files = await response.json();
+            this.displayFiles(files);
+            
+        } catch (error) {
+            console.error('Error loading files:', error);
+            this.fileListError.textContent = 'Failed to load files. Please try again.';
+            this.fileListError.style.display = 'block';
+            this.fileListLoading.style.display = 'none';
+        }
+    }
+    
+    displayFiles(files) {
+        this.fileListLoading.style.display = 'none';
+        this.fileList.style.display = 'block';
+        
+        if (files.length === 0) {
+            this.fileList.innerHTML = '<div class="file-list-empty">No files available</div>';
+            return;
+        }
+        
+        this.fileList.innerHTML = files.map(file => {
+            const isSelected = this.selectedFiles.has(file.id);
+            const fileSize = this.formatFileSize(file.size);
+            const uploadDate = new Date(file.upload_date).toLocaleDateString();
+            
+            return `
+                <div class="file-item ${isSelected ? 'selected' : ''}" data-file-id="${file.id}">
+                    <input type="checkbox" class="file-checkbox" ${isSelected ? 'checked' : ''} />
+                    <div class="file-info">
+                        <div class="file-name">${this.escapeHtml(file.filename)}</div>
+                        <div class="file-meta">
+                            <span>${fileSize}</span>
+                            <span>${uploadDate}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        // Add click handlers
+        this.fileList.querySelectorAll('.file-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                const fileId = item.dataset.fileId;
+                const file = files.find(f => f.id === fileId);
+                this.toggleFileSelection(fileId, file, item);
+            });
+        });
+    }
+    
+    toggleFileSelection(fileId, fileInfo, itemElement) {
+        const checkbox = itemElement.querySelector('.file-checkbox');
+        
+        if (this.selectedFiles.has(fileId)) {
+            this.selectedFiles.delete(fileId);
+            itemElement.classList.remove('selected');
+            checkbox.checked = false;
+        } else {
+            if (this.selectedFiles.size >= 10) {
+                this.chatApp.showError('Maximum 10 files can be selected');
+                return;
+            }
+            this.selectedFiles.set(fileId, fileInfo);
+            itemElement.classList.add('selected');
+            checkbox.checked = true;
+        }
+    }
+    
+    confirmSelection() {
+        this.closeModal();
+        this.updateSelectedFilesDisplay();
+    }
+    
+    updateSelectedFilesDisplay() {
+        if (this.selectedFiles.size === 0) {
+            this.selectedFilesDiv.style.display = 'none';
+            return;
+        }
+        
+        this.selectedFilesDiv.style.display = 'block';
+        this.selectedFilesList.innerHTML = Array.from(this.selectedFiles.entries()).map(([id, file]) => `
+            <div class="file-chip" data-file-id="${id}">
+                <span class="file-chip-name">${this.escapeHtml(file.filename)}</span>
+                <button class="file-chip-remove" onclick="window.chatApp.fileSelector.removeFile('${id}')">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+        `).join('');
+    }
+    
+    removeFile(fileId) {
+        this.selectedFiles.delete(fileId);
+        this.updateSelectedFilesDisplay();
+    }
+    
+    clearSelection() {
+        this.selectedFiles.clear();
+        this.updateSelectedFilesDisplay();
+    }
+    
+    getSelectedFileIds() {
+        return Array.from(this.selectedFiles.keys());
+    }
+    
+    formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+    
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+}
+
 // Chat functionality
 class ChatApp {
     constructor() {
@@ -10,6 +178,9 @@ class ChatApp {
         
         this.sessionId = null;
         this.isStreaming = false;
+        
+        // Initialize file selector
+        this.fileSelector = new FileSelector(this);
         
         this.init();
     }
@@ -55,6 +226,8 @@ class ChatApp {
         
         try {
             await this.streamChat(message, assistantMessageEl);
+            // Clear file selection after successful send
+            this.fileSelector.clearSelection();
         } catch (error) {
             this.showError('Failed to send message. Please try again.');
             assistantMessageEl.remove();
@@ -69,6 +242,9 @@ class ChatApp {
         const contentEl = messageElement.querySelector('.message-content');
         
         try {
+            // Get selected file IDs
+            const fileIds = this.fileSelector.getSelectedFileIds();
+            
             const response = await fetch('/api/chat/', {
                 method: 'POST',
                 headers: {
@@ -76,7 +252,8 @@ class ChatApp {
                 },
                 body: JSON.stringify({
                     message: message,
-                    session_id: this.sessionId
+                    session_id: this.sessionId,
+                    file_ids: fileIds.length > 0 ? fileIds : null
                 })
             });
             
@@ -265,5 +442,5 @@ class ChatApp {
 
 // Initialize app when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    new ChatApp();
+    window.chatApp = new ChatApp();
 });

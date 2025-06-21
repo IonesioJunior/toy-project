@@ -1,13 +1,13 @@
 from .exceptions import (
-    DocumentNotFoundError,
-    DocumentAlreadyExistsError,
     ChromaDBError,
-    ValidationError
+    DocumentAlreadyExistsError,
+    DocumentNotFoundError,
+    ValidationError,
 )
 
 __all__ = [
     "DocumentNotFoundError",
     "DocumentAlreadyExistsError",
     "ChromaDBError",
-    "ValidationError"
+    "ValidationError",
 ]
