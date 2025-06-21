@@ -1,4 +1,5 @@
 import os
+from contextlib import asynccontextmanager
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request
@@ -10,10 +11,28 @@ from fastapi.templating import Jinja2Templates
 from app.config import settings, syft_client
 from app.routes import files, permissions
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Manage application lifespan."""
+    # Startup
+    if not syft_client:
+        raise RuntimeError(
+            "SyftBox is not properly configured. "
+            "Please run 'syftbox init' before starting the application."
+        )
+    print(f"SyftBox verified. User: {syft_client.email} (ENV: {settings.APP_ENV})")
+    
+    yield
+    
+    # Shutdown (if needed)
+    pass
+
+
 app = FastAPI(
     title="File Management API",
     description="A FastAPI application for file management with SyftBox integration",
     version="1.0.0",
+    lifespan=lifespan,
 )
 
 # Configure CORS
@@ -33,17 +52,6 @@ if os.path.exists("src/app/static"):
     app.mount("/static", StaticFiles(directory="src/app/static"), name="static")
 
 
-@app.on_event("startup")
-async def verify_syft_core() -> None:
-    """Verify syft_core is properly initialized on startup."""
-    if not syft_client:
-        raise RuntimeError(
-            "SyftBox is not properly configured. "
-            "Please run 'syftbox init' before starting the application."
-        )
-    print(f"SyftBox verified. User: {syft_client.email} (ENV: {settings.APP_ENV})")
-
-
 @app.get("/health")
 async def health_check() -> dict[str, str | bool]:
     """Health check endpoint that verifies syft_core status."""
@@ -59,9 +67,9 @@ async def health_check() -> dict[str, str | bool]:
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
-        "index.html",
-        {
-            "request": request,
+        request=request,
+        name="index.html",
+        context={
             "max_file_size": settings.MAX_FILE_SIZE,
             "max_file_size_mb": settings.MAX_FILE_SIZE // (1024 * 1024),
             "allowed_extensions": list(settings.ALLOWED_EXTENSIONS),
