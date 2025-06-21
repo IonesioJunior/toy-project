@@ -2,6 +2,7 @@
 """Test configuration and fixtures."""
 
 import os
+
 import pytest
 
 # Set test environment BEFORE any other imports
@@ -25,7 +26,7 @@ def client():
     """Create test client with proper configuration."""
     # Import after setting environment variables
     from src.main import app
-    
+
     with TestClient(app) as test_client:
         yield test_client
 

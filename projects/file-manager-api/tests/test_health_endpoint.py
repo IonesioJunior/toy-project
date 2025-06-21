@@ -75,12 +75,17 @@ class TestHealthEndpoint:
         # Test with syft_client set to None
         monkeypatch.setattr("app.main.syft_client", None)
 
-        from app.main import verify_syft_core
+        from app.main import lifespan, app as fastapi_app
 
         with pytest.raises(RuntimeError) as exc_info:
             import asyncio
+            from contextlib import AsyncExitStack
 
-            asyncio.run(verify_syft_core())
+            async def test_lifespan():
+                async with AsyncExitStack() as stack:
+                    await stack.enter_async_context(lifespan(fastapi_app))
+
+            asyncio.run(test_lifespan())
 
         assert "SyftBox is not properly configured" in str(exc_info.value)
         assert "syftbox init" in str(exc_info.value)

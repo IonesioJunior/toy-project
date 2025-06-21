@@ -1,6 +1,10 @@
+import os
 import shutil
 import tempfile
 from pathlib import Path
+
+# Set test environment before any app imports
+os.environ["APP_ENV"] = "testing"
 
 import pytest
 from fastapi.testclient import TestClient
@@ -84,10 +88,25 @@ def ensure_syft_client(monkeypatch, mock_syft_client_custom):
 @pytest.fixture(autouse=True)
 def cleanup_test_storage():
     """Clean up test storage before and after each test."""
-    # Clean before test
+    # Import here to ensure it's after environment setup
+    from app.config import FILE_STORAGE_PATH, METADATA_PATH
+    
+    # Get the base storage directory
     test_storage = Path("/tmp/syftbox_mock")
+    
+    # Clean before test
     if test_storage.exists():
         shutil.rmtree(test_storage, ignore_errors=True)
+    
+    # Also clean the specific storage paths
+    if FILE_STORAGE_PATH.exists():
+        shutil.rmtree(FILE_STORAGE_PATH, ignore_errors=True)
+    if METADATA_PATH.exists():
+        shutil.rmtree(METADATA_PATH, ignore_errors=True)
+    
+    # Recreate the directories
+    FILE_STORAGE_PATH.mkdir(parents=True, exist_ok=True)
+    METADATA_PATH.mkdir(parents=True, exist_ok=True)
 
     yield
 

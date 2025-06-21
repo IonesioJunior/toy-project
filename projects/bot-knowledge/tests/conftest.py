@@ -1,29 +1,31 @@
+import os
+import shutil
+import tempfile
+from datetime import datetime, timezone
+from unittest.mock import MagicMock, Mock, patch
+
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import MagicMock, patch, Mock
-import tempfile
-import shutil
-from pathlib import Path
-import os
-from datetime import datetime
 
 # Set test environment before any imports
-os.environ['APP_ENV'] = 'testing'
-os.environ['CHROMA_TELEMETRY_DISABLED'] = '1'
+os.environ["APP_ENV"] = "testing"
+os.environ["CHROMA_TELEMETRY_DISABLED"] = "1"
 
 # Mock ChromaDB before importing app modules
-with patch('chromadb.Client') as mock_client_class, \
-     patch('chromadb.PersistentClient') as mock_persistent_client_class:
+with (
+    patch("chromadb.Client") as mock_client_class,
+    patch("chromadb.PersistentClient") as mock_persistent_client_class,
+):
     mock_client = Mock()
     mock_collection = Mock()
     mock_collection.count.return_value = 1  # Prevent warmup
     mock_client.get_or_create_collection.return_value = mock_collection
     mock_client_class.return_value = mock_client
     mock_persistent_client_class.return_value = mock_client
-    
+
     from src.app.main import app
-    from src.app.services.vector_service import VectorService
     from src.app.models.document import DocumentCreate, DocumentResponse
+    from src.app.services.vector_service import VectorService
 
 
 @pytest.fixture
@@ -46,16 +48,16 @@ def temp_chroma_dir():
 def mock_vector_service():
     """Create a mock vector service"""
     service = MagicMock(spec=VectorService)
-    
+
     # Mock document response
     mock_doc = DocumentResponse(
         id="test_doc_1",
         content="Test document content",
         metadata={"category": "test"},
-        created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow()
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
     )
-    
+
     # Configure mock methods
     service.create_document.return_value = mock_doc
     service.get_document.return_value = mock_doc
@@ -66,13 +68,20 @@ def mock_vector_service():
         "documents": ["Test document content"],
         "ids": ["test_doc_1"],
         "distances": [0.1],
-        "metadatas": [{"category": "test"}]
+        "metadatas": [{"category": "test"}],
     }
     service.create_documents_batch.return_value = [
-        {"id": "test_doc_1", "status": "success", "message": "Document created successfully"}
+        {
+            "id": "test_doc_1",
+            "status": "success",
+            "message": "Document created successfully",
+        }
     ]
-    service.delete_all_documents.return_value = {"status": "success", "message": "All documents deleted"}
-    
+    service.delete_all_documents.return_value = {
+        "status": "success",
+        "message": "All documents deleted",
+    }
+
     return service
 
 
@@ -81,12 +90,15 @@ def sample_document():
     """Create a sample document for testing"""
     return DocumentCreate(
         id="test_doc_1",
-        content="This is a test document about artificial intelligence and machine learning.",
+        content=(
+            "This is a test document about artificial intelligence "
+            "and machine learning."
+        ),
         metadata={
             "category": "technology",
             "author": "Test Author",
-            "tags": ["AI", "ML", "test"]
-        }
+            "tags": ["AI", "ML", "test"],
+        },
     )
 
 
@@ -97,7 +109,7 @@ def sample_documents():
         DocumentCreate(
             id=f"test_doc_{i}",
             content=f"Test document {i} content about topic {i}",
-            metadata={"index": i, "category": f"category_{i % 3}"}
+            metadata={"index": i, "category": f"category_{i % 3}"},
         )
         for i in range(5)
     ]
@@ -106,14 +118,14 @@ def sample_documents():
 @pytest.fixture(autouse=True)
 def mock_chroma_client(temp_chroma_dir):
     """Mock ChromaDB client for all tests"""
-    with patch('src.app.database.settings.chroma_persist_directory', temp_chroma_dir):
+    with patch("src.app.database.settings.chroma_persist_directory", temp_chroma_dir):
         yield
 
 
 @pytest.fixture
 def mock_settings():
     """Mock application settings"""
-    with patch('src.app.config.settings') as mock:
+    with patch("src.app.config.settings") as mock:
         mock.app_name = "Test FastAPI ChromaDB API"
         mock.app_version = "1.0.0-test"
         mock.debug_mode = True

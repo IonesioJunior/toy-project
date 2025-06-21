@@ -61,7 +61,7 @@ def test_mock_syft_client_generates_correct_urls():
 
     syft_url = mock_client.to_syft_url(test_path)
 
-    assert syft_url == "syft://test@example.com/apis/file_management/storage/file.txt"
+    assert syft_url == "syft://test@example.com/app_data/file_management/storage/file.txt"
     assert mock_client.email == "test@example.com"
 
 

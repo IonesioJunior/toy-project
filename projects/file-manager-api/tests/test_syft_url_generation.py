@@ -87,12 +87,12 @@ class TestSyftUrlGeneration:
         assert response.status_code == 201
         syft_url = response.json()["syft_url"]
 
-        # Expected pattern: syft://email/apis/file_management/storage/filename
+        # Expected pattern: syft://email/app_data/file_management/storage/filename
         assert syft_url.startswith("syft://")
 
         # In testing mode, email should be from MockSyftClient
         assert "@" in syft_url  # Contains email
-        assert "/apis/file_management/storage/" in syft_url
+        assert "/app_data/file_management/storage/" in syft_url
         assert syft_url.endswith("pattern_test.txt")
 
     def test_storage_stats_includes_syft_paths(self, client: TestClient):

@@ -1,17 +1,12 @@
 #!/usr/bin/env python3
 """Tests for main module."""
 
-import pytest
-
 
 def test_health_endpoint(client):
     """Test health check endpoint."""
     response = client.get("/health")
     assert response.status_code == 200
-    assert response.json() == {
-        "status": "healthy", 
-        "service": "LLM Chat Application"
-    }
+    assert response.json() == {"status": "healthy", "service": "LLM Chat Application"}
 
 
 def test_root_endpoint(client):
