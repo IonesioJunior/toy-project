@@ -1,7 +1,7 @@
 import logging
 import os
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Mapping, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from chromadb.api.models.Collection import Collection
 
@@ -62,7 +62,7 @@ class VectorService:
             if self._collection is None:
                 logger.warning("Collection not initialized, skipping warmup")
                 return
-            
+
             self._collection.add(
                 documents=[
                     "This is a test document to initialize the embedding model."
@@ -83,7 +83,9 @@ class VectorService:
         if self._collection is None:
             self._initialize_collection()
         if self._collection is None:
-            raise ChromaDBError("collection", Exception("Failed to initialize collection"))
+            raise ChromaDBError(
+                "collection", Exception("Failed to initialize collection")
+            )
         return self._collection
 
     def _document_exists(self, document_id: str) -> bool:
@@ -248,13 +250,21 @@ class VectorService:
             # Handle potential None values in results
             document_id = result["ids"][0] if result["ids"] else document_id
             document_content = result["documents"][0] if result["documents"] else ""
-            
+
             return DocumentResponse(
                 id=document_id,
                 content=document_content,
                 metadata=metadata,
-                created_at=datetime.fromisoformat(created_at) if created_at and isinstance(created_at, str) else None,
-                updated_at=datetime.fromisoformat(updated_at) if updated_at and isinstance(updated_at, str) else None,
+                created_at=(
+                    datetime.fromisoformat(created_at)
+                    if created_at and isinstance(created_at, str)
+                    else None
+                ),
+                updated_at=(
+                    datetime.fromisoformat(updated_at)
+                    if updated_at and isinstance(updated_at, str)
+                    else None
+                ),
                 file_manager_id=file_manager_id,
                 file_manager_url=file_manager_url,
                 file_size=file_size,
@@ -456,19 +466,31 @@ class VectorService:
                 mime_type = metadata.pop("mime_type", None)
 
                 # Handle potential None values in lists
-                doc_id = all_data["ids"][i] if all_data["ids"] and i < len(all_data["ids"]) else f"unknown_{i}"
-                doc_content = all_data["documents"][i] if all_data["documents"] and i < len(all_data["documents"]) else ""
-                
+                doc_id = (
+                    all_data["ids"][i]
+                    if all_data["ids"] and i < len(all_data["ids"])
+                    else f"unknown_{i}"
+                )
+                doc_content = (
+                    all_data["documents"][i]
+                    if all_data["documents"] and i < len(all_data["documents"])
+                    else ""
+                )
+
                 documents.append(
                     DocumentResponse(
                         id=doc_id,
                         content=doc_content,
                         metadata=metadata,
                         created_at=(
-                            datetime.fromisoformat(created_at) if created_at and isinstance(created_at, str) else None
+                            datetime.fromisoformat(created_at)
+                            if created_at and isinstance(created_at, str)
+                            else None
                         ),
                         updated_at=(
-                            datetime.fromisoformat(updated_at) if updated_at and isinstance(updated_at, str) else None
+                            datetime.fromisoformat(updated_at)
+                            if updated_at and isinstance(updated_at, str)
+                            else None
                         ),
                         file_manager_id=file_manager_id,
                         file_manager_url=file_manager_url,
@@ -497,14 +519,42 @@ class VectorService:
             )
 
             # Process results with proper None handling
-            if results["ids"] and len(results["ids"]) > 0 and results["ids"][0] is not None:
+            if (
+                results["ids"]
+                and len(results["ids"]) > 0
+                and results["ids"][0] is not None
+            ):
                 # Handle potential None values in nested lists
-                documents = results["documents"][0] if results["documents"] and len(results["documents"]) > 0 and results["documents"][0] is not None else []
-                ids = results["ids"][0] if results["ids"] and len(results["ids"]) > 0 and results["ids"][0] is not None else []
-                distances = results["distances"][0] if results["distances"] and len(results["distances"]) > 0 and results["distances"][0] is not None else []
-                
+                documents = (
+                    results["documents"][0]
+                    if results["documents"]
+                    and len(results["documents"]) > 0
+                    and results["documents"][0] is not None
+                    else []
+                )
+                ids = (
+                    results["ids"][0]
+                    if results["ids"]
+                    and len(results["ids"]) > 0
+                    and results["ids"][0] is not None
+                    else []
+                )
+                distances = (
+                    results["distances"][0]
+                    if results["distances"]
+                    and len(results["distances"]) > 0
+                    and results["distances"][0] is not None
+                    else []
+                )
+
                 # Handle metadatas - convert Mapping to dict if needed
-                raw_metadatas = results["metadatas"][0] if results["metadatas"] and len(results["metadatas"]) > 0 and results["metadatas"][0] is not None else []
+                raw_metadatas = (
+                    results["metadatas"][0]
+                    if results["metadatas"]
+                    and len(results["metadatas"]) > 0
+                    and results["metadatas"][0] is not None
+                    else []
+                )
                 metadatas: List[Dict[str, Any]] = []
                 if raw_metadatas:
                     for raw_meta in raw_metadatas:
@@ -512,7 +562,7 @@ class VectorService:
                             metadatas.append(dict(raw_meta))
                         else:
                             metadatas.append({})
-                
+
                 return QueryResponse(
                     documents=documents if documents else [],
                     ids=ids if ids else [],
@@ -563,14 +613,16 @@ class VectorService:
 
             # Handle None values in results
             ids = all_data["ids"] if all_data["ids"] is not None else []
-            
+
             if ids:
                 # If file manager is enabled, try to delete files
                 if settings.enable_file_manager:
                     deleted_files = 0
                     for i, doc_id in enumerate(ids):
                         # Handle None values in metadatas
-                        if all_data["metadatas"] is None or i >= len(all_data["metadatas"]):
+                        if all_data["metadatas"] is None or i >= len(
+                            all_data["metadatas"]
+                        ):
                             metadata: Dict[str, Any] = {}
                         else:
                             raw_metadata = all_data["metadatas"][i]

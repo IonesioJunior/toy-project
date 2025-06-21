@@ -3,7 +3,7 @@
 
 import logging
 from contextlib import asynccontextmanager
-from typing import AsyncIterator, Dict, Any
+from typing import AsyncIterator, Dict
 
 import uvicorn
 from fastapi import FastAPI, Request

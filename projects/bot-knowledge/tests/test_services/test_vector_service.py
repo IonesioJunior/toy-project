@@ -184,7 +184,7 @@ class TestVectorService:
         """Test deleting all documents"""
         mock_collection.get.return_value = {
             "ids": ["doc1", "doc2", "doc3"],
-            "metadatas": [{}, {}, {}]
+            "metadatas": [{}, {}, {}],
         }
 
         result = await vector_service.delete_all_documents()

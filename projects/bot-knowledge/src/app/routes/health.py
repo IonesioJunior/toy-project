@@ -28,7 +28,7 @@ async def health_check() -> Dict[str, Any]:
         heartbeat_timestamp = chroma_client.heartbeat()
         health_status["checks"]["chromadb"] = {
             "status": "healthy",
-            "heartbeat": heartbeat_timestamp
+            "heartbeat": heartbeat_timestamp,
         }
     except Exception as e:
         logger.error(f"ChromaDB health check failed: {str(e)}")

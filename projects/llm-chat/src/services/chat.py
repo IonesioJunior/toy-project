@@ -69,10 +69,13 @@ class ChatService:
             # enhanced version
             if enhanced_message != user_message and messages:
                 messages[-1]["content"] = enhanced_message
-            
+
             # Convert to ChatCompletionMessageParam type
             typed_messages: List[ChatCompletionMessageParam] = [
-                cast(ChatCompletionMessageParam, {"role": msg["role"], "content": msg["content"]})
+                cast(
+                    ChatCompletionMessageParam,
+                    {"role": msg["role"], "content": msg["content"]},
+                )
                 for msg in messages
             ]
 

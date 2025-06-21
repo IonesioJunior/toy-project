@@ -1,11 +1,9 @@
 import logging
 import os
-from typing import AsyncIterator, Dict, List, Optional
+from typing import AsyncIterator, List, Optional
 
 from openai import AsyncOpenAI
-from openai.types.chat import ChatCompletionMessageParam, ChatCompletionChunk
-from openai.types.chat.chat_completion import ChatCompletion
-from openai._streaming import AsyncStream
+from openai.types.chat import ChatCompletionMessageParam
 
 from src.core.config import get_settings
 
@@ -58,7 +56,9 @@ class OpenAIService:
             logger.error(f"OpenAI API error: {str(e)}")
             yield f"Error: {str(e)}"
 
-    async def create_chat_completion(self, messages: List[ChatCompletionMessageParam]) -> str:
+    async def create_chat_completion(
+        self, messages: List[ChatCompletionMessageParam]
+    ) -> str:
         """Create a non-streaming chat completion."""
         # Return mock response in test mode
         if os.getenv("APP_ENV") == "testing":
@@ -72,10 +72,7 @@ class OpenAIService:
         try:
             # When stream=False (default), create() returns ChatCompletion
             response = await self.client.chat.completions.create(
-                model=self.model, 
-                messages=messages, 
-                temperature=0.7, 
-                max_tokens=2000
+                model=self.model, messages=messages, temperature=0.7, max_tokens=2000
             )
 
             return response.choices[0].message.content or ""
