@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple File Upload</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+
+        .upload-zone {
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            background-color: #fafafa;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-zone:hover {
+            border-color: #4CAF50;
+            background-color: #f1f8f4;
+        }
+
+        .upload-zone.drag-over {
+            border-color: #4CAF50;
+            background-color: #e8f5e9;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            color: #999;
+            margin-bottom: 10px;
+        }
+
+        .upload-text {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .upload-subtext {
+            color: #999;
+            font-size: 14px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-list {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .file-list h3 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background-color: #f8f8f8;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .file-icon {
+            font-size: 20px;
+        }
+
+        .file-name {
+            font-size: 14px;
+            color: #333;
+        }
+
+        .file-size {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .remove-btn {
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            font-size: 20px;
+            padding: 5px;
+            transition: color 0.2s;
+        }
+
+        .remove-btn:hover {
+            color: #f44336;
+        }
+
+        .upload-controls {
+            margin-top: 20px;
+            display: none;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background-color: #4CAF50;
+            color: white;
+            flex: 1;
+        }
+
+        .btn-primary:hover {
+            background-color: #45a049;
+        }
+
+        .btn-primary:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background-color: #e0e0e0;
+        }
+
+        .progress {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: #4CAF50;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .status-message {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 6px;
+            display: none;
+            font-size: 14px;
+        }
+
+        .status-success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #a5d6a7;
+        }
+
+        .status-error {
+            background-color: #ffebee;
+            color: #c62828;
+            border: 1px solid #ef9a9a;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Upload Documents</h1>
+        
+        <div class="upload-zone" id="upload-zone">
+            <div class="upload-icon">📁</div>
+            <div class="upload-text">Drop files here or click to browse</div>
+            <div class="upload-subtext">Supports: .txt, .md, .csv, .json, .html, .xml, .log</div>
+            <input type="file" id="file-input" multiple accept=".txt,.md,.csv,.json,.html,.xml,.log">
+        </div>
+
+        <div class="file-list" id="file-list">
+            <h3>Selected Files (<span id="file-count">0</span>)</h3>
+            <div id="file-items"></div>
+        </div>
+
+        <div class="upload-controls" id="upload-controls">
+            <button class="btn btn-secondary" id="clear-btn">Clear All</button>
+            <button class="btn btn-primary" id="upload-btn">Upload Files</button>
+        </div>
+
+        <div class="progress" id="progress">
+            <div>Uploading... <span id="progress-text">0%</span></div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+        </div>
+
+        <div class="status-message" id="status-message"></div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_URL = 'http://localhost:8002/api/v1/documents';
+        const ALLOWED_EXTENSIONS = ['.txt', '.md', '.csv', '.json', '.html', '.xml', '.log'];
+        const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
+        // State
+        let selectedFiles = [];
+
+        // Elements
+        const uploadZone = document.getElementById('upload-zone');
+        const fileInput = document.getElementById('file-input');
+        const fileList = document.getElementById('file-list');
+        const fileItems = document.getElementById('file-items');
+        const fileCount = document.getElementById('file-count');
+        const uploadControls = document.getElementById('upload-controls');
+        const clearBtn = document.getElementById('clear-btn');
+        const uploadBtn = document.getElementById('upload-btn');
+        const progress = document.getElementById('progress');
+        const progressFill = document.getElementById('progress-fill');
+        const progressText = document.getElementById('progress-text');
+        const statusMessage = document.getElementById('status-message');
+
+        // Event listeners
+        uploadZone.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+        clearBtn.addEventListener('click', clearFiles);
+        uploadBtn.addEventListener('click', uploadFiles);
+
+        // Drag and drop
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('drag-over');
+        });
+
+        uploadZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('drag-over');
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('drag-over');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        // File handling
+        function handleFiles(files) {
+            const fileArray = Array.from(files);
+            
+            fileArray.forEach(file => {
+                if (validateFile(file)) {
+                    selectedFiles.push(file);
+                }
+            });
+
+            updateFileList();
+        }
+
+        function validateFile(file) {
+            // Check file extension
+            const hasValidExtension = ALLOWED_EXTENSIONS.some(ext => 
+                file.name.toLowerCase().endsWith(ext)
+            );
+
+            if (!hasValidExtension) {
+                showStatus(`Invalid file type: ${file.name}`, 'error');
+                return false;
+            }
+
+            // Check file size
+            if (file.size > MAX_FILE_SIZE) {
+                showStatus(`File too large: ${file.name} (max 10MB)`, 'error');
+                return false;
+            }
+
+            // Check if file already exists
+            if (selectedFiles.some(f => f.name === file.name)) {
+                return false;
+            }
+
+            return true;
+        }
+
+        function updateFileList() {
+            if (selectedFiles.length === 0) {
+                fileList.style.display = 'none';
+                uploadControls.style.display = 'none';
+                return;
+            }
+
+            fileList.style.display = 'block';
+            uploadControls.style.display = 'flex';
+            fileCount.textContent = selectedFiles.length;
+
+            fileItems.innerHTML = selectedFiles.map((file, index) => `
+                <div class="file-item">
+                    <div class="file-info">
+                        <span class="file-icon">📄</span>
+                        <div>
+                            <div class="file-name">${file.name}</div>
+                            <div class="file-size">${formatFileSize(file.size)}</div>
+                        </div>
+                    </div>
+                    <button class="remove-btn" onclick="removeFile(${index})">×</button>
+                </div>
+            `).join('');
+        }
+
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            updateFileList();
+        }
+
+        function clearFiles() {
+            selectedFiles = [];
+            fileInput.value = '';
+            updateFileList();
+            hideStatus();
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Upload functionality
+        async function uploadFiles() {
+            if (selectedFiles.length === 0) return;
+
+            uploadBtn.disabled = true;
+            clearBtn.disabled = true;
+            progress.style.display = 'block';
+            hideStatus();
+
+            let successCount = 0;
+            let errorCount = 0;
+
+            for (let i = 0; i < selectedFiles.length; i++) {
+                const file = selectedFiles[i];
+                const progressPercent = Math.round(((i + 1) / selectedFiles.length) * 100);
+                
+                updateProgress(progressPercent, `Uploading ${i + 1} of ${selectedFiles.length}`);
+
+                try {
+                    await uploadFile(file);
+                    successCount++;
+                } catch (error) {
+                    console.error(`Failed to upload ${file.name}:`, error);
+                    errorCount++;
+                }
+            }
+
+            // Upload complete
+            uploadBtn.disabled = false;
+            clearBtn.disabled = false;
+            progress.style.display = 'none';
+
+            if (errorCount === 0) {
+                showStatus(`Successfully uploaded ${successCount} file(s)`, 'success');
+                clearFiles();
+            } else {
+                showStatus(`Uploaded ${successCount} file(s), ${errorCount} failed`, 'error');
+            }
+        }
+
+        async function uploadFile(file) {
+            const content = await readFileContent(file);
+            const documentId = generateDocumentId(file.name);
+
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    id: documentId,
+                    content: content,
+                    metadata: {
+                        filename: file.name,
+                        filesize: file.size,
+                        filetype: file.type || 'text/plain',
+                        upload_date: new Date().toISOString()
+                    }
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail || 'Upload failed');
+            }
+
+            return response.json();
+        }
+
+        function readFileContent(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = reject;
+                reader.readAsText(file);
+            });
+        }
+
+        function generateDocumentId(filename) {
+            const baseName = filename.replace(/\.[^/.]+$/, ''); // Remove extension
+            const cleanName = baseName.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+            const timestamp = Date.now();
+            return `doc_${cleanName}_${timestamp}`;
+        }
+
+        function updateProgress(percent, text) {
+            progressFill.style.width = `${percent}%`;
+            progressText.textContent = text || `${percent}%`;
+        }
+
+        function showStatus(message, type) {
+            statusMessage.textContent = message;
+            statusMessage.className = `status-message status-${type}`;
+            statusMessage.style.display = 'block';
+        }
+
+        function hideStatus() {
+            statusMessage.style.display = 'none';
+        }
+
+        // Make removeFile global for onclick handler
+        window.removeFile = removeFile;
+    </script>
+</body>
+</html>
