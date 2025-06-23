@@ -25,11 +25,16 @@ services:
     build:
       context: ../..
       dockerfile: projects/file-manager-api/docker/Dockerfile.prod
-      target: production
     ports:
       - "8080:8000"
+    volumes:
+      - ~/.syftbox:/root/.syftbox:ro
+      - ~/SyftBox:/home/ubuntu/SyftBox
     environment:
       - PYTHONUNBUFFERED=1
+      - HOME=/root
+      - SYFTBOX_CONFIG_PATH=/root/.syftbox/config.json
+    user: root
     restart: unless-stopped
 
   file-manager-api-test:
@@ -75,12 +80,13 @@ services:
     build:
       context: ../../projects/bot-knowledge
       dockerfile: Dockerfile.prod
-      target: production
     ports:
-      - "8081:8000"
+      - "8091:8000"
     environment:
       - PYTHONUNBUFFERED=1
       - CHROMA_PERSIST_DIRECTORY=/app/chroma_db
+      - FILE_MANAGER_API_URL=http://file-manager-api-prod:8000
+      - ENABLE_FILE_MANAGER=true
     restart: unless-stopped
 
   bot-knowledge-test:
