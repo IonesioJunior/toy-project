@@ -7,12 +7,14 @@ ARG VERSION=unknown
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    UV_SYSTEM_PYTHON=1 \
+    PYTHONPATH=/app/projects/file-manager-api/src \
     VERSION=${VERSION}
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
+    gcc \
+    python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv
@@ -28,8 +30,15 @@ COPY projects/file-manager-api/pyproject.toml ./projects/file-manager-api/
 # Change to project directory
 WORKDIR /app/projects/file-manager-api
 
-# Install production dependencies only
-RUN uv sync --frozen --no-dev
+# Install production dependencies using uv pip
+RUN uv pip install --system --no-cache \
+    fastapi \
+    "uvicorn[standard]" \
+    pydantic-settings \
+    aiofiles \
+    python-multipart \
+    syft-core>=0.2.4 \
+    jinja2
 
 # Copy application code from monorepo structure
 COPY projects/file-manager-api/src ./src
@@ -46,4 +55,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
 # Run the application - update module path
-CMD ["uv", "run", "uvicorn", "src.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "-m", "uvicorn", "src.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
