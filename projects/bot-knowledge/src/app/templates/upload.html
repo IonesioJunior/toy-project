@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Document Upload</title>
+    <link rel="stylesheet" href="/static/css/upload.css">
+</head>
+<body>
+    <div class="container">
+        <div class="upload-card">
+            <h1 class="title">Document Upload</h1>
+            <p class="subtitle">Upload documents to the RAG knowledge base</p>
+            
+            <div class="upload-area" id="uploadArea">
+                <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3-3m0 0l3 3m-3-3v6" />
+                </svg>
+                <h2 class="upload-text">Drop files here or click to browse</h2>
+                <p class="upload-hint">Supports .txt, .pdf, .doc, .docx, .csv, .json, .md files</p>
+                <input type="file" id="fileInput" multiple accept=".txt,.pdf,.doc,.docx,.csv,.json,.md" hidden>
+            </div>
+            
+            <div class="file-list" id="fileList"></div>
+            
+            <div class="action-buttons">
+                <button class="btn btn-secondary" id="clearBtn" disabled>Clear All</button>
+                <button class="btn btn-primary" id="uploadBtn" disabled>
+                    <span class="btn-text">Upload Files</span>
+                    <div class="spinner" id="spinner"></div>
+                </button>
+            </div>
+        </div>
+        
+        <div class="notifications" id="notifications"></div>
+    </div>
+    
+    <script src="/static/js/upload.js"></script>
+</body>
+</html>
