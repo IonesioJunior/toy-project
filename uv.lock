@@ -165,6 +165,7 @@ source = { editable = "projects/bot-knowledge" }
 dependencies = [
     { name = "chromadb" },
     { name = "fastapi" },
+    { name = "jinja2" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "python-dotenv" },
@@ -190,6 +191,7 @@ requires-dist = [
     { name = "chromadb", specifier = ">=0.4.15" },
     { name = "fastapi", specifier = ">=0.104.1" },
     { name = "httpx", marker = "extra == 'dev'", specifier = ">=0.24.0" },
+    { name = "jinja2", specifier = ">=3.1.2" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.0.0" },
     { name = "pydantic", specifier = ">=2.4.2" },
     { name = "pydantic-settings", specifier = ">=2.0.0" },
@@ -509,16 +511,35 @@ wheels = [
 ]
 
 [[package]]
+name = "fastsyftbox"
+version = "0.1.11"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "fastapi" },
+    { name = "httpx" },
+    { name = "syft-core" },
+    { name = "syft-event" },
+    { name = "typer" },
+    { name = "uvicorn" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/23/90/3129445b39e359af9f246d349ab20bc3811c77e412b0a047032d98d03f20/fastsyftbox-0.1.11.tar.gz", hash = "sha256:445f2c67c68360999ff9df6fe1c528ec3334c48ac6a2981520e9358707c6944e", size = 26979 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c2/3d/baa6f65a134434e2af39fb46cbeae74a5fa64df4499049c62e64af915c2d/fastsyftbox-0.1.11-py3-none-any.whl", hash = "sha256:2a9c0e53219bb3bc14c27412b87077d3ca568f86f173d1517b322fcb76e5b897", size = 29867 },
+]
+
+[[package]]
 name = "file-manager-api"
 version = "0.1.0"
 source = { virtual = "projects/file-manager-api" }
 dependencies = [
     { name = "aiofiles" },
     { name = "fastapi" },
+    { name = "fastsyftbox" },
     { name = "jinja2" },
     { name = "pydantic-settings" },
     { name = "python-multipart" },
     { name = "syft-core" },
+    { name = "syft-event" },
     { name = "uvicorn", extra = ["standard"] },
 ]
 
@@ -543,6 +564,7 @@ requires-dist = [
     { name = "black", marker = "extra == 'dev'", specifier = ">=23.0.0" },
     { name = "coverage-badge", marker = "extra == 'test'", specifier = ">=1.1.0" },
     { name = "fastapi" },
+    { name = "fastsyftbox", specifier = ">=0.1.11" },
     { name = "httpx", marker = "extra == 'test'", specifier = ">=0.24.0" },
     { name = "jinja2" },
     { name = "locust", marker = "extra == 'test'", specifier = ">=2.0.0" },
@@ -554,6 +576,7 @@ requires-dist = [
     { name = "python-multipart" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.1.0" },
     { name = "syft-core", specifier = ">=0.2.4" },
+    { name = "syft-event", specifier = ">=0.2.4" },
     { name = "uvicorn", extras = ["standard"] },
 ]
 
@@ -1090,6 +1113,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/a0/ce/60fa27ebf214c3ddf159634006a607ef73a44e3657a32ca2630738e7c2ba/locust_cloud-1.23.2.tar.gz", hash = "sha256:614051174a96672fdba3a77ba2c4bcb537fe28ad32bf4bfdb715429aabe395be", size = 451096 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/37/ff/9328101b6936f8f394464c371a9ac2c98294c5f5aa29292e83ca6f3a9709/locust_cloud-1.23.2-py3-none-any.whl", hash = "sha256:553979d165c1415685bde13460969cad188ee0438b4747393a5e11f566e10733", size = 408452 },
+]
+
+[[package]]
+name = "loguru"
+version = "0.7.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "colorama", marker = "sys_platform == 'win32'" },
+    { name = "win32-setctime", marker = "sys_platform == 'win32'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/3a/05/a1dae3dffd1116099471c643b8924f5aa6524411dc6c63fdae648c4f1aca/loguru-0.7.3.tar.gz", hash = "sha256:19480589e77d47b8d85b2c827ad95d49bf31b0dcde16593892eb51dd18706eb6", size = 63559 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/0c/29/0348de65b8cc732daa3e33e67806420b2ae89bdce2b04af740289c5c6c8c/loguru-0.7.3-py3-none-any.whl", hash = "sha256:31a33c10c8e1e10422bfd431aeb5d351c7cf7fa671e3c4df004162264b28220c", size = 61595 },
 ]
 
 [[package]]
@@ -2054,6 +2090,36 @@ wheels = [
 ]
 
 [[package]]
+name = "syft-event"
+version = "0.2.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "loguru" },
+    { name = "pathspec" },
+    { name = "pydantic" },
+    { name = "syft-rpc" },
+    { name = "watchdog" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/fd/97/cc03ba004bdd56d6ff02fa026a0f5ceb440c882632eb71732957c9099201/syft_event-0.2.4.tar.gz", hash = "sha256:e9fbf2726ff3322ad54d625ecc44eafe0b6d51a01170a7ceb7dfb1b94eb5dc6b", size = 6869 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1c/93/6358881b68d144eef55d8d2e9fba36d3b328d0425bf31569569464fe0b48/syft_event-0.2.4-py3-none-any.whl", hash = "sha256:834079e630625fb2ce500fa8baf0de974bc53f7afeb0ef705f3e5fd24de316b1", size = 7723 },
+]
+
+[[package]]
+name = "syft-rpc"
+version = "0.2.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pydantic" },
+    { name = "syft-core" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/5f/d7/55f0ed64da8be5b8293d536e51b72aa3da68da2f59105b3b4082738fa485/syft_rpc-0.2.3.tar.gz", hash = "sha256:7591c66da7571ca06d171ae567666795cbdbe68807cb49b6815d97c11291cb51", size = 10662 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f5/01/84deb4af0740947552205426b4f2a73643d53dcd5f7ab08a486fcb34c0ce/syft_rpc-0.2.3-py3-none-any.whl", hash = "sha256:d908fdab03c34c964dd1add6213c189660de67d32176fb4054e250da40b346bf", size = 11072 },
+]
+
+[[package]]
 name = "sympy"
 version = "1.14.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2209,6 +2275,27 @@ wheels = [
 ]
 
 [[package]]
+name = "watchdog"
+version = "6.0.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/db/7d/7f3d619e951c88ed75c6037b246ddcf2d322812ee8ea189be89511721d54/watchdog-6.0.0.tar.gz", hash = "sha256:9ddf7c82fda3ae8e24decda1338ede66e1c99883db93711d8fb941eaa2d8c282", size = 131220 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/68/98/b0345cabdce2041a01293ba483333582891a3bd5769b08eceb0d406056ef/watchdog-6.0.0-cp313-cp313-macosx_10_13_universal2.whl", hash = "sha256:490ab2ef84f11129844c23fb14ecf30ef3d8a6abafd3754a6f75ca1e6654136c", size = 96480 },
+    { url = "https://files.pythonhosted.org/packages/85/83/cdf13902c626b28eedef7ec4f10745c52aad8a8fe7eb04ed7b1f111ca20e/watchdog-6.0.0-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:76aae96b00ae814b181bb25b1b98076d5fc84e8a53cd8885a318b42b6d3a5134", size = 88451 },
+    { url = "https://files.pythonhosted.org/packages/fe/c4/225c87bae08c8b9ec99030cd48ae9c4eca050a59bf5c2255853e18c87b50/watchdog-6.0.0-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:a175f755fc2279e0b7312c0035d52e27211a5bc39719dd529625b1930917345b", size = 89057 },
+    { url = "https://files.pythonhosted.org/packages/a9/c7/ca4bf3e518cb57a686b2feb4f55a1892fd9a3dd13f470fca14e00f80ea36/watchdog-6.0.0-py3-none-manylinux2014_aarch64.whl", hash = "sha256:7607498efa04a3542ae3e05e64da8202e58159aa1fa4acddf7678d34a35d4f13", size = 79079 },
+    { url = "https://files.pythonhosted.org/packages/5c/51/d46dc9332f9a647593c947b4b88e2381c8dfc0942d15b8edc0310fa4abb1/watchdog-6.0.0-py3-none-manylinux2014_armv7l.whl", hash = "sha256:9041567ee8953024c83343288ccc458fd0a2d811d6a0fd68c4c22609e3490379", size = 79078 },
+    { url = "https://files.pythonhosted.org/packages/d4/57/04edbf5e169cd318d5f07b4766fee38e825d64b6913ca157ca32d1a42267/watchdog-6.0.0-py3-none-manylinux2014_i686.whl", hash = "sha256:82dc3e3143c7e38ec49d61af98d6558288c415eac98486a5c581726e0737c00e", size = 79076 },
+    { url = "https://files.pythonhosted.org/packages/ab/cc/da8422b300e13cb187d2203f20b9253e91058aaf7db65b74142013478e66/watchdog-6.0.0-py3-none-manylinux2014_ppc64.whl", hash = "sha256:212ac9b8bf1161dc91bd09c048048a95ca3a4c4f5e5d4a7d1b1a7d5752a7f96f", size = 79077 },
+    { url = "https://files.pythonhosted.org/packages/2c/3b/b8964e04ae1a025c44ba8e4291f86e97fac443bca31de8bd98d3263d2fcf/watchdog-6.0.0-py3-none-manylinux2014_ppc64le.whl", hash = "sha256:e3df4cbb9a450c6d49318f6d14f4bbc80d763fa587ba46ec86f99f9e6876bb26", size = 79078 },
+    { url = "https://files.pythonhosted.org/packages/62/ae/a696eb424bedff7407801c257d4b1afda455fe40821a2be430e173660e81/watchdog-6.0.0-py3-none-manylinux2014_s390x.whl", hash = "sha256:2cce7cfc2008eb51feb6aab51251fd79b85d9894e98ba847408f662b3395ca3c", size = 79077 },
+    { url = "https://files.pythonhosted.org/packages/b5/e8/dbf020b4d98251a9860752a094d09a65e1b436ad181faf929983f697048f/watchdog-6.0.0-py3-none-manylinux2014_x86_64.whl", hash = "sha256:20ffe5b202af80ab4266dcd3e91aae72bf2da48c0d33bdb15c66658e685e94e2", size = 79078 },
+    { url = "https://files.pythonhosted.org/packages/07/f6/d0e5b343768e8bcb4cda79f0f2f55051bf26177ecd5651f84c07567461cf/watchdog-6.0.0-py3-none-win32.whl", hash = "sha256:07df1fdd701c5d4c8e55ef6cf55b8f0120fe1aef7ef39a1c6fc6bc2e606d517a", size = 79065 },
+    { url = "https://files.pythonhosted.org/packages/db/d9/c495884c6e548fce18a8f40568ff120bc3a4b7b99813081c8ac0c936fa64/watchdog-6.0.0-py3-none-win_amd64.whl", hash = "sha256:cbafb470cf848d93b5d013e2ecb245d4aa1c8fd0504e863ccefa32445359d680", size = 79070 },
+    { url = "https://files.pythonhosted.org/packages/33/e8/e40370e6d74ddba47f002a32919d91310d6074130fe4e17dabcafc15cbf1/watchdog-6.0.0-py3-none-win_ia64.whl", hash = "sha256:a1914259fa9e1454315171103c6a30961236f508b9b623eae470268bbcc6a22f", size = 79067 },
+]
+
+[[package]]
 name = "watchfiles"
 version = "1.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2313,6 +2400,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/9f/69/83029f1f6300c5fb2471d621ab06f6ec6b3324685a2ce0f9777fd4a8b71e/werkzeug-3.1.3.tar.gz", hash = "sha256:60723ce945c19328679790e3282cc758aa4a6040e4bb330f53d30fa546d44746", size = 806925 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/52/24/ab44c871b0f07f491e5d2ad12c9bd7358e527510618cb1b803a88e986db1/werkzeug-3.1.3-py3-none-any.whl", hash = "sha256:54b78bf3716d19a65be4fceccc0d1d7b89e608834989dfae50ea87564639213e", size = 224498 },
+]
+
+[[package]]
+name = "win32-setctime"
+version = "1.2.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/b3/8f/705086c9d734d3b663af0e9bb3d4de6578d08f46b1b101c2442fd9aecaa2/win32_setctime-1.2.0.tar.gz", hash = "sha256:ae1fdf948f5640aae05c511ade119313fb6a30d7eabe25fef9764dca5873c4c0", size = 4867 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e1/07/c6fe3ad3e685340704d314d765b7912993bcb8dc198f0e7a89382d37974b/win32_setctime-1.2.0-py3-none-any.whl", hash = "sha256:95d644c4e708aba81dc3704a116d8cbc974d70b3bdb8be1d150e36be6e9d1390", size = 4083 },
 ]
 
 [[package]]

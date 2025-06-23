@@ -12,6 +12,8 @@ dependencies = [
     "python-multipart",
     "syft-core>=0.2.4",
     "jinja2",
+    "syft-event>=0.2.4",
+    "fastsyftbox>=0.1.11",
 ]
 
 [project.optional-dependencies]
