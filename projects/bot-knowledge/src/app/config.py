@@ -40,7 +40,7 @@ class Settings(BaseSettings):
 
     # File Manager API settings
     file_manager_api_url: str = Field(
-        default="http://localhost:8001",
+        default="http://localhost:8000",
         description="URL of the File Manager API service",
     )
     enable_file_manager: bool = Field(

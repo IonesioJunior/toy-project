@@ -5,7 +5,10 @@ from typing import AsyncGenerator
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from pathlib import Path
 
 from .config import settings
 from .database import chroma_client
@@ -67,9 +70,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Mount static files
+app_dir = Path(__file__).parent
+app.mount("/static", StaticFiles(directory=app_dir / "static"), name="static")
+
+# Setup templates
+templates = Jinja2Templates(directory=app_dir / "templates")
+
 # Include routers
 app.include_router(health_router)
 app.include_router(documents_router)
+
+# Add upload page route
+@app.get("/upload", response_class=HTMLResponse)
+async def upload_page(request: Request):
+    """Serve the file upload interface"""
+    return templates.TemplateResponse("upload.html", {"request": request})
 
 
 # Global exception handler
